@@ -1,0 +1,138 @@
+---
+title: "Harvard Capstone Movielens"
+author: "Manoj Bijoor"
+date: "3/7/2021"
+output: 
+  pdf_document: 
+#    toc: yes
+#    toc_depth: 3
+    fig_caption: yes
+    number_sections: yes
+#    keep_tex: yes
+#  github_document:
+#  html_document: 
+#    keep_md: true
+---
+
+\newpage  
+
+\tableofcontents  
+
+\listoffigures  
+
+\listoftables  
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\newpage
+# Project Overview: MovieLens - A Harvard Capstone Project  
+A movie recommendation system using the MovieLens dataset.  
+
+For this project, I will be creating a movie recommendation system using the MovieLens dataset, provided by [GroupLens Research](https://grouplens.org/){target="_blank"}, a research lab in the Department of Computer Science and Engineering at the University of Minnesota, Twin Cities specializing in recommender systems, online communities, mobile and ubiquitous technologies, digital libraries, and local geographic information systems.
+
+[GroupLens Research](https://grouplens.org/datasets/movielens/){target="_blank"} has collected and made available rating data sets from the [MovieLens web site](https://movielens.org){target="_blank"}. The data sets were collected over various periods of time, depending on the size of the set.
+
+I will use the [10M version of the MovieLens dataset](https://grouplens.org/datasets/movielens/10m/){target="_blank"} to make the computation a little easier.
+
+**First**, I will download the MovieLens data and run code provided to generate my datasets.
+
+**Second**, I will train a machine learning algorithm using the inputs in one subset to predict movie ratings in the validation set.  
+  
+
+---  
+
+## Create Train and Final Hold-out Test Sets  
+I will develop my algorithm using the edx set. For a final test of my final algorithm, I predict movie ratings in the validation set (the final hold-out test set) as if they were unknown. [RMSE](https://en.wikipedia.org/wiki/Root-mean-square_deviation){target="_blank"} will be used to evaluate how close my predictions are to the true values in the validation set (the final hold-out test set).  
+  
+
+---  
+
+### Important: Data sets usage  
+The validation data (the final hold-out test set) will NOT be used for training, developing, or selecting my algorithm and it will ONLY be used for evaluating the RMSE of my final algorithm. The final hold-out test set will only be used at the end of my project with my final model. It will not be used to test the RMSE of multiple models during model development. I will split the edx data into separate training and test sets to design and test my algorithm.   
+  
+
+---  
+
+## Final Product  
+### My submission for this project is three files:  
+1. My report in Rmd format
+2. My report in PDF format (knit from my Rmd file)
+3. A script in R format that generates my predicted movie ratings and RMSE score (contains all code and comments for my project)  
+  
+The report documents the analysis and presents the findings, along with supporting statistics and figures. The report assumes that the reader is not familiar with the project or the data. The report includes the RMSE generated and the following sections:  
+1. an introduction/overview/executive summary section that describes the dataset and summarizes the goal of the project and key steps that were performed
+2. a methods/analysis section that explains the process and techniques used, including data cleaning, data exploration and visualization, insights gained, and my modeling approach
+3. a results section that presents the modeling results and discusses the model performance
+4. a conclusion section that gives a brief summary of the report, its limitations and future work  
+
+
+---  
+
+```{r knitr_knit_exit}
+knitr::knit_exit()
+```
+
+
+```{r create_edx_val, eval=TRUE, echo=FALSE, cache=FALSE, include=FALSE, warning=FALSE}
+
+################################
+# Create edx set, validation set
+################################
+
+# Note: this process could take a couple of minutes
+
+if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+if(!require(caret)) install.packages("caret", repos = "http://cran.us.r-project.org")
+if(!require(data.table)) install.packages("data.table", repos = "http://cran.us.r-project.org")
+if(!require(lubridate)) install.packages("caret", repos = "http://cran.us.r-project.org")
+if(!require(groupdata2)) install.packages("data.table", repos = "http://cran.us.r-project.org")
+
+# https://www.tidyverse.org/blog/2020/05/dplyr-1-0-0-last-minute-additions/
+options(dplyr.summarise.inform = FALSE)
+
+# MovieLens 10M dataset:
+# https://grouplens.org/datasets/movielens/10m/
+# http://files.grouplens.org/datasets/movielens/ml-10m-README.html
+# http://files.grouplens.org/datasets/movielens/ml-10m.zip
+
+dl <- tempfile()
+download.file("http://files.grouplens.org/datasets/movielens/ml-10m.zip", dl)
+
+ratings <- fread(text = gsub("::", "\t", readLines(unzip(dl, "ml-10M100K/ratings.dat"))),
+                 col.names = c("userId", "movieId", "rating", "timestamp"))
+
+movies <- str_split_fixed(readLines(unzip(dl, "ml-10M100K/movies.dat")), "\\::", 3)
+colnames(movies) <- c("movieId", "title", "genres")
+movies <- as.data.frame(movies) %>% mutate(movieId = as.numeric(movieId),
+                                           title = as.character(title),
+                                           genres = as.character(genres))
+
+movielens <- left_join(ratings, movies, by = "movieId")
+
+# Validation set will be 10% of MovieLens data
+set.seed(1, sample.kind="Rounding")
+# if using R 3.5 or earlier, use `set.seed(1)` instead
+test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
+edx <- movielens[-test_index,]
+temp <- movielens[test_index,]
+
+# Make sure userId and movieId in validation set are also in edx set
+validation <- temp %>%
+  semi_join(edx, by = "movieId") %>%
+  semi_join(edx, by = "userId")
+
+# Add rows removed from validation set back into edx set
+removed <- anti_join(temp, validation)
+edx <- rbind(edx, removed)
+
+save(ratings, file = "ratings.rda")
+save(movies, file = "movies.rda")
+rm(dl, ratings, movies, test_index, temp, movielens, removed)
+
+save(edx, file = "edx.rda")
+save(validation, file = "validation.rda")
+```
+\newpage
