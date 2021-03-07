@@ -8,22 +8,21 @@ Manoj Bijoor
 A movie recommendation system using the MovieLens dataset.
 
 For this project, I will be creating a movie recommendation system using
-the MovieLens dataset, provided by
-<a href="https://grouplens.org/" target="_blank">GroupLens Research</a>,
-a research lab in the Department of Computer Science and Engineering at
-the University of Minnesota, Twin Cities specializing in recommender
-systems, online communities, mobile and ubiquitous technologies, digital
-libraries, and local geographic information systems.
+the MovieLens dataset, provided by [GroupLens
+Research](https://grouplens.org/), a research lab in the Department of
+Computer Science and Engineering at the University of Minnesota, Twin
+Cities specializing in recommender systems, online communities, mobile
+and ubiquitous technologies, digital libraries, and local geographic
+information systems.
 
-<a href="https://grouplens.org/datasets/movielens/" target="_blank">GroupLens Research</a>
-has collected and made available rating data sets from the
-<a href="https://movielens.org" target="_blank">MovieLens web site</a>.
-The data sets were collected over various periods of time, depending on
-the size of the set.
+[GroupLens Research](https://grouplens.org/datasets/movielens/) has
+collected and made available rating data sets from the [MovieLens web
+site](https://movielens.org). The data sets were collected over various
+periods of time, depending on the size of the set.
 
-I will use the
-<a href="https://grouplens.org/datasets/movielens/10m/" target="_blank">10M version of the MovieLens dataset</a>
-to make the computation a little easier.
+I will use the [10M version of the MovieLens
+dataset](https://grouplens.org/datasets/movielens/10m/) to make the
+computation a little easier.
 
 **First**, I will download the MovieLens data and run code provided to
 generate my datasets.
@@ -38,9 +37,9 @@ in one subset to predict movie ratings in the validation set.
 I will develop my algorithm using the edx set. For a final test of my
 final algorithm, I predict movie ratings in the validation set (the
 final hold-out test set) as if they were unknown.
-<a href="https://en.wikipedia.org/wiki/Root-mean-square_deviation" target="_blank">RMSE</a>
-will be used to evaluate how close my predictions are to the true values
-in the validation set (the final hold-out test set).
+[RMSE](https://en.wikipedia.org/wiki/Root-mean-square_deviation) will be
+used to evaluate how close my predictions are to the true values in the
+validation set (the final hold-out test set).
 
 ------------------------------------------------------------------------
 
