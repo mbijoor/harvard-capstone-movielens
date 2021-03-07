@@ -2,14 +2,13 @@
 title: "Harvard Capstone Movielens"
 author: "Manoj Bijoor"
 date: "3/7/2021"
-output: 
-  pdf_document: 
+output: github_document
+#  pdf_document: 
 #    toc: yes
 #    toc_depth: 3
-    fig_caption: yes
-    number_sections: yes
+#    fig_caption: yes
+#    number_sections: yes
 #    keep_tex: yes
-#  github_document:
 #  html_document: 
 #    keep_md: true
 ---
