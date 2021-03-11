@@ -1,0 +1,772 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames*,x11names*}{xcolor}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Movielens A Harvard Capstone Project},
+  pdfauthor={Manoj Bijoor},
+  colorlinks=true,
+  linkcolor=blue,
+  filecolor=Maroon,
+  citecolor=Blue,
+  urlcolor=blue,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+\usepackage{amsmath} \usepackage{pdflscape}
+\usepackage{subfig}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+\ifluatex
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{Movielens\\
+A Harvard Capstone Project}
+\author{Manoj Bijoor}
+\date{March 11, 2021}
+
+\begin{document}
+\maketitle
+
+\pagenumbering{roman}
+
+\newpage
+
+\newpage
+
+\begin{center}
+
+\large{Abstract}
+
+\end{center}
+
+\bigskip
+
+\ldots this is the abstract text\ldots{}
+
+\newpage
+
+\setcounter{tocdepth}{5}
+\tableofcontents
+
+\newpage
+
+\hypertarget{list-of-tables}{%
+\section*{List of tables}\label{list-of-tables}}
+\addcontentsline{toc}{section}{List of tables}
+
+\renewcommand{\listtablename}{}
+
+\listoftables
+
+\newpage
+
+\hypertarget{list-of-figures}{%
+\section*{List of figures}\label{list-of-figures}}
+\addcontentsline{toc}{section}{List of figures}
+
+\renewcommand{\listfigurename}{}
+\listoffigures
+
+\newpage
+
+\pagenumbering{arabic}
+
+\hypertarget{project-overview-movielens---a-harvard-capstone-project}{%
+\section{Project Overview: MovieLens - A Harvard Capstone
+Project}\label{project-overview-movielens---a-harvard-capstone-project}}
+
+A movie recommendation system using the MovieLens dataset.
+
+For this project, I will be creating a movie recommendation system using
+the MovieLens dataset, provided by
+\href{https://grouplens.org/}{GroupLens Research}, a research lab in the
+Department of Computer Science and Engineering at the University of
+Minnesota, Twin Cities specializing in recommender systems, online
+communities, mobile and ubiquitous technologies, digital libraries, and
+local geographic information systems.
+
+\href{https://grouplens.org/datasets/movielens/}{GroupLens Research} has
+collected and made available rating data sets from the
+\href{https://movielens.org}{MovieLens web site}. The data sets were
+collected over various periods of time, depending on the size of the
+set.
+
+I will use the \href{https://grouplens.org/datasets/movielens/10m/}{10M
+version of the MovieLens dataset} to make the computation a little
+easier.
+
+\textbf{First}, I will download the MovieLens data and run code provided
+to generate my datasets.
+
+\textbf{Second}, I will train a machine learning algorithm using the
+inputs in one subset to predict movie ratings in the validation set.
+
+\hypertarget{create-train-and-final-hold-out-test-sets}{%
+\subsection{Create Train and Final Hold-out Test
+Sets}\label{create-train-and-final-hold-out-test-sets}}
+
+I will develop my algorithm using the edx set. For a final test of my
+final algorithm, I predict movie ratings in the validation set (the
+final hold-out test set) as if they were unknown.
+\href{https://en.wikipedia.org/wiki/Root-mean-square_deviation}{RMSE}
+will be used to evaluate how close my predictions are to the true values
+in the validation set (the final hold-out test set).
+
+\hypertarget{important-data-sets-usage}{%
+\subsubsection{Important: Data sets
+usage}\label{important-data-sets-usage}}
+
+The validation data (the final hold-out test set) will NOT be used for
+training, developing, or selecting my algorithm and it will ONLY be used
+for evaluating the RMSE of my final algorithm. The final hold-out test
+set will only be used at the end of my project with my final model. It
+will not be used to test the RMSE of multiple models during model
+development. I will split the edx data into separate training and test
+sets to design and test my algorithm.
+
+\hypertarget{final-product}{%
+\subsection{Final Product}\label{final-product}}
+
+\hypertarget{my-submission-for-this-project-is-three-files}{%
+\subsubsection{My submission for this project is three
+files:}\label{my-submission-for-this-project-is-three-files}}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  My report in Rmd format
+\item
+  My report in PDF format (knit from my Rmd file)
+\item
+  A script in R format that generates my predicted movie ratings and
+  RMSE score (contains all code and comments for my project)
+\end{enumerate}
+
+The report documents the analysis and presents the findings, along with
+supporting statistics and figures. The report assumes that the reader is
+not familiar with the project or the data. The report includes the RMSE
+generated and the following sections:\\
+1. an introduction/overview/executive summary section that describes the
+dataset and summarizes the goal of the project and key steps that were
+performed 2. a methods/analysis section that explains the process and
+techniques used, including data cleaning, data exploration and
+visualization, insights gained, and my modeling approach 3. a results
+section that presents the modeling results and discusses the model
+performance 4. a conclusion section that gives a brief summary of the
+report, its limitations and future work
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\newpage
+
+\hypertarget{exploratory-data-analysis}{%
+\section{Exploratory Data Analysis}\label{exploratory-data-analysis}}
+
+\hypertarget{data-wrangling}{%
+\subsection{Data Wrangling}\label{data-wrangling}}
+
+\href{https://en.wikipedia.org/wiki/Data_wrangling}{Data wrangling},
+sometimes referred to as data munging, is the process of transforming
+and mapping data from one ``raw'' data form into another format with the
+intent of making it more appropriate and valuable for a variety of
+downstream purposes such as analytics.
+
+The main steps could be described as follows:\\
+1. Discovering\\
+2. Structuring\\
+3. Cleaning\\
+4. Enriching\\
+5. Validating\\
+6. Publishing
+
+Let's perform the steps or combinations thereof starting with Initial
+data Exploration \& Visualization in the next few subsections.
+
+\hypertarget{initial-data-exploration-visualization}{%
+\subsubsection{Initial data Exploration \&
+Visualization}\label{initial-data-exploration-visualization}}
+
+The first ten rows out of 9000055 rows of the Movielens data can be
+found in Table \ref{tbl:movielens_data}.
+
+\begin{table}[H]
+
+\caption{\label{tab:eda_1}Movielens data\label{tbl:movielens_data}}
+\centering
+\fontsize{7}{9}\selectfont
+\begin{tabular}[t]{rrrrll}
+\toprule
+userId & movieId & rating & timestamp & title & genres\\
+\midrule
+1 & 122 & 5 & 838985046 & Boomerang (1992) & Comedy|Romance\\
+1 & 185 & 5 & 838983525 & Net, The (1995) & Action|Crime|Thriller\\
+1 & 292 & 5 & 838983421 & Outbreak (1995) & Action|Drama|Sci-Fi|Thriller\\
+1 & 316 & 5 & 838983392 & Stargate (1994) & Action|Adventure|Sci-Fi\\
+1 & 329 & 5 & 838983392 & Star Trek: Generations (1994) & Action|Adventure|Drama|Sci-Fi\\
+1 & 355 & 5 & 838984474 & Flintstones, The (1994) & Children|Comedy|Fantasy\\
+1 & 356 & 5 & 838983653 & Forrest Gump (1994) & Comedy|Drama|Romance|War\\
+1 & 362 & 5 & 838984885 & Jungle Book, The (1994) & Adventure|Children|Romance\\
+1 & 364 & 5 & 838983707 & Lion King, The (1994) & Adventure|Animation|Children|Drama|Musical\\
+1 & 370 & 5 & 838984596 & Naked Gun 33 1/3: The Final Insult (1994) & Action|Comedy\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Each row represents a rating given by one user to one movie.
+
+We can see the number of unique users that provided ratings and how many
+unique movies were rated. The unique genres here is based on a column
+called ``genres'' that includes every genre that applies to the movie.
+Some movies fall under several genres. Defining a category as whatever
+combination appears in this column, we are going to refer to this
+category as ``unique genres'' or simply ``genres'' from now on.
+
+The number of unique users, movies and genres can be found in Table
+\ref{tbl:uniq_users_movies_genres}.
+
+\begin{table}[H]
+
+\caption{\label{tab:eda_2}Unique Users, Movies and Genres\label{tbl:uniq_users_movies_genres}}
+\centering
+\begin{tabular}[t]{rrr}
+\toprule
+unique\_users & unique\_movies & unique\_genres\\
+\midrule
+69878 & 10677 & 797\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+If we multiply the number of unique users by number of unique movies, we
+get a very large number, actually 746087406, yet our data table has
+9000055 rows. This implies that not every user rated every movie. So we
+can think of these data as a very large matrix, with users on the rows
+and movies on the columns, with many empty cells. The `gather' function
+permits us to convert it to this format, but if we try it for the entire
+matrix, it will crash R.
+
+Let's show the matrix of seven users ie: userId's 13-20 and four movies
+in Table \ref{tbl:matrix_seven_users_four_movies}.
+
+\begin{table}[H]
+
+\caption{\label{tab:eda_3}Matrix of seven users and four movies\label{tbl:matrix_seven_users_four_movies}}
+\centering
+\fontsize{8}{10}\selectfont
+\begin{tabular}[t]{rrrrr}
+\toprule
+userId & Forrest Gump (1994) & Jurassic Park (1993) & Pulp Fiction (1994) & Silence of the Lambs, The (1991)\\
+\midrule
+13 & NA & NA & 4 & NA\\
+16 & NA & 3 & NA & NA\\
+17 & NA & NA & NA & 5\\
+18 & NA & 3 & 5 & 5\\
+19 & 4 & 1 & NA & NA\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+
+\hypertarget{a-very-sparse-matrix}{%
+\paragraph{A Very Sparse Matrix}\label{a-very-sparse-matrix}}
+
+You can think of the task of a recommendation system as filling in the
+`NAs' in the table above. To see how sparse the matrix is, here is the
+matrix in Figure \ref{fig:matr} for a random sample of 100 movies and
+100 users with yellow indicating a user/movie combination for which we
+have a rating.
+
+\begin{figure}
+\centering
+\includegraphics{figures/eda_4-1.pdf}
+\caption{A Very Sparse Matrix\label{fig:matr}}
+\end{figure}
+
+This machine learning challenge is quite complicated, because each
+outcome \(Y\) has a different set of predictors. To see this, note that
+if we are predicting the rating for movie \emph{i} by user \emph{u}, in
+principle, all other ratings related to movie \emph{i} and by user
+\emph{u} may be used as predictors, but different users rate different
+movies and a different number of movies. Furthermore, we may be able to
+use information from other movies that we have determined are similar to
+movie \emph{i} or from users determined to be similar to user \emph{u}.
+In essence, the entire matrix can be used as predictors for each cell.
+
+\newpage
+
+\hypertarget{general-properties-of-the-data}{%
+\paragraph{General Properties of the
+data}\label{general-properties-of-the-data}}
+
+Let's look at some of the \textbf{\emph{general properties}} of the data
+to better understand the challenges.
+
+The \textbf{\emph{first thing}} we notice is that some movies get rated
+more than others. Figure \ref{fig:movies_getting_rated} shows the Movies
+getting rated distribution. This should not surprise us given that there
+are blockbuster movies watched by millions and artsy, independent movies
+watched by just a few:
+
+\begin{figure}
+\centering
+\includegraphics{figures/eda_5-1.pdf}
+\caption{Movies getting rated
+distribution\label{fig:movies_getting_rated}}
+\end{figure}
+
+\newpage
+
+Our \textbf{\emph{second observation}} is that some users are more
+active than others at rating movies. Figure
+\ref{fig:users_rating_movies} shows Users rating movies distribution:
+
+\begin{figure}
+\centering
+\includegraphics{figures/eda_6-1.pdf}
+\caption{Users rating movies
+distribution\label{fig:users_rating_movies}}
+\end{figure}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\newpage
+
+\hypertarget{further-data-exploration-visualization-modification}{%
+\subsubsection{Further data Exploration, Visualization \&
+Modification}\label{further-data-exploration-visualization-modification}}
+
+\hypertarget{modify_edx}{%
+\paragraph{Modify edx}\label{modify_edx}}
+
+\textbf{Convert timestamp} in Movielens edx data Table
+\ref{tbl:movielens_data} into date-time, a more readable and useful
+format named \emph{rating\_date} in Table
+\ref{tbl:movielens_edx_data_rating_date} below.
+
+\begin{table}[H]
+
+\caption{\label{tab:dw_1}Movielens edx data with rating date-time\label{tbl:movielens_edx_data_rating_date}}
+\centering
+\fontsize{8}{10}\selectfont
+\begin{tabular}[t]{rrrlll}
+\toprule
+userId & movieId & rating & title & genres & rating\_date\\
+\midrule
+1 & 122 & 5 & Boomerang (1992) & Comedy|Romance & 1996-08-02 11:24:06\\
+1 & 185 & 5 & Net, The (1995) & Action|Crime|Thriller & 1996-08-02 10:58:45\\
+1 & 292 & 5 & Outbreak (1995) & Action|Drama|Sci-Fi|Thriller & 1996-08-02 10:57:01\\
+1 & 316 & 5 & Stargate (1994) & Action|Adventure|Sci-Fi & 1996-08-02 10:56:32\\
+1 & 329 & 5 & Star Trek: Generations (1994) & Action|Adventure|Drama|Sci-Fi & 1996-08-02 10:56:32\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Split title} in Movielens edx data Table
+\ref{tbl:movielens_data} into title and year movie released, a more
+useful format named \emph{movie\_dt} in Table
+\ref{tbl:movielens_edx_movie_release_date} below.
+
+\begin{table}[H]
+
+\caption{\label{tab:dw_2}Movielens edx data with movie release date\label{tbl:movielens_edx_movie_release_date}}
+\centering
+\fontsize{8}{10}\selectfont
+\begin{tabular}[t]{rrrlllr}
+\toprule
+userId & movieId & rating & title & genres & rating\_date & movie\_dt\\
+\midrule
+1 & 122 & 5 & Boomerang & Comedy|Romance & 1996-08-02 11:24:06 & 1992\\
+1 & 185 & 5 & Net, The & Action|Crime|Thriller & 1996-08-02 10:58:45 & 1995\\
+1 & 292 & 5 & Outbreak & Action|Drama|Sci-Fi|Thriller & 1996-08-02 10:57:01 & 1995\\
+1 & 316 & 5 & Stargate & Action|Adventure|Sci-Fi & 1996-08-02 10:56:32 & 1994\\
+1 & 329 & 5 & Star Trek: Generations & Action|Adventure|Drama|Sci-Fi & 1996-08-02 10:56:32 & 1994\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\newpage
+
+\hypertarget{modify-validation-repeat-above-steps}{%
+\paragraph{Modify validation, repeat above
+steps}\label{modify-validation-repeat-above-steps}}
+
+\textbf{Convert timestamp} in Movielens validation data Table
+\ref{tbl:movielens_data} into date-time, a more readable and useful
+format named \emph{rating\_date} in Table
+\ref{tbl:movielens_val_data_rating_date} below.
+
+\begin{table}[H]
+
+\caption{\label{tab:dw_3}Movielens validation data with rating date-time\label{tbl:movielens_val_data_rating_date}}
+\centering
+\fontsize{8}{10}\selectfont
+\begin{tabular}[t]{rrrlll}
+\toprule
+userId & movieId & rating & title & genres & rating\_date\\
+\midrule
+1 & 231 & 5 & Dumb \& Dumber (1994) & Comedy & 1996-08-02 10:56:32\\
+1 & 480 & 5 & Jurassic Park (1993) & Action|Adventure|Sci-Fi|Thriller & 1996-08-02 11:00:53\\
+1 & 586 & 5 & Home Alone (1990) & Children|Comedy & 1996-08-02 11:07:48\\
+2 & 151 & 3 & Rob Roy (1995) & Action|Drama|Romance|War & 1997-07-07 03:34:10\\
+2 & 858 & 2 & Godfather, The (1972) & Crime|Drama & 1997-07-07 03:20:45\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Split title} in Movielens validation data Table
+\ref{tbl:movielens_data} into title and year movie released, a more
+useful format named \emph{movie\_dt} in Table
+\ref{tbl:movielens_val_movie_release_date} below.
+
+\begin{table}[H]
+
+\caption{\label{tab:dw_4}Movielens validation data with movie release date\label{tbl:movielens_val_movie_release_date}}
+\centering
+\fontsize{8}{10}\selectfont
+\begin{tabular}[t]{rrrlllr}
+\toprule
+userId & movieId & rating & title & genres & rating\_date & movie\_dt\\
+\midrule
+1 & 231 & 5 & Dumb \& Dumber & Comedy & 1996-08-02 10:56:32 & 1994\\
+1 & 480 & 5 & Jurassic Park & Action|Adventure|Sci-Fi|Thriller & 1996-08-02 11:00:53 & 1993\\
+1 & 586 & 5 & Home Alone & Children|Comedy & 1996-08-02 11:07:48 & 1990\\
+2 & 151 & 3 & Rob Roy & Action|Drama|Romance|War & 1997-07-07 03:34:10 & 1995\\
+2 & 858 & 2 & Godfather, The & Crime|Drama & 1997-07-07 03:20:45 & 1972\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\newpage
+
+\hypertarget{movie-release-date---a-closer-look}{%
+\paragraph{Movie Release Date - a closer
+look}\label{movie-release-date---a-closer-look}}
+
+Computing the number of ratings for each movie and then plotting it
+against the year the movie came out, that is the release date and using
+the square root transformation on the counts using Table
+\ref{tbl:movielens_edx_movie_release_date} , we get see Figure
+\ref{fig:ratings_movie_release_date_all_dates} :
+
+\begin{figure}[h!]
+
+{\centering \subfloat[All data points only\label{fig:md_1-1}]{\includegraphics[width=0.7\linewidth]{figures/md_1-1} }\newline\subfloat[Smooth line through all data points\label{fig:md_1-2}]{\includegraphics[width=0.7\linewidth]{figures/md_1-2} }
+
+}
+
+\caption{Ratings Movie Release Date - All dates\label{fig:ratings_movie_release_date_all_dates}}\label{fig:md_1}
+\end{figure}
+
+we see that, on average, movies that came out after 1993 get more
+ratings. We also see that with newer movies, starting in 1993, the
+number of ratings decreases with year: the more recent a movie is, the
+less time users have had to rate it.
+
+\newpage
+
+Among movies that came out in 1991 or later, we select the top 25 movies
+with the highest average number of ratings per year (n/year) and
+calculate the average rating of each of them. To calculate number of
+ratings per year, use 2018 as the end year. See Figure
+\ref{fig:25_movies_avg_and_most_ratings_per_year_post_1991} :
+
+\begin{verbatim}
+`geom_smooth()` using method = 'loess' and formula 'y ~ x'
+\end{verbatim}
+
+\begin{figure}
+\centering
+\includegraphics{figures/md_2-1.pdf}
+\caption{25 Movies with the most ratings per year and their average
+rating post
+1991\label{fig:25_movies_avg_and_most_ratings_per_year_post_1991}}
+\end{figure}
+
+\newpage
+
+Among movies that came out in 1993 or later, we select the top 25 movies
+with the highest average number of ratings per year (n/year) and
+calculate the average rating of each of them. To calculate number of
+ratings per year, use 2018 as the end year. See Figure
+\ref{fig:25_movies_avg_and_most_ratings_per_year_post_1993} :
+
+\begin{verbatim}
+`geom_smooth()` using method = 'loess' and formula 'y ~ x'
+\end{verbatim}
+
+\begin{figure}
+\centering
+\includegraphics{figures/md_3-1.pdf}
+\caption{25 Movies with the most ratings per year and their average
+rating post
+1993\label{fig:25_movies_avg_and_most_ratings_per_year_post_1993}}
+\end{figure}
+
+\newpage
+
+We see that the most rated movies tend to have above average ratings.
+This is not surprising: more people watch popular movies. To confirm
+this, we stratify the post 1993 movies by ratings per year and compute
+their average ratings. Figure
+\ref{fig:movies_average_ratings_versus_ratings_per_year_post_1993} is a
+plot of average ratings versus ratings per year showing an estimate of
+the trend.
+
+We see that the more a movie is rated, the higher the rating.
+
+\textbf{Post-1993 movies}
+
+\begin{verbatim}
+`geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+\end{verbatim}
+
+\begin{figure}
+\centering
+\includegraphics{figures/md_4-1.pdf}
+\caption{Movies average ratings versus ratings per year post
+1993\label{fig:movies_average_ratings_versus_ratings_per_year_post_1993}}
+\end{figure}
+
+\newpage
+
+\textbf{Pre-1993 movies}\\
+Compare Pre-1993 movies trend shown here in Figure
+\ref{fig:movies_average_ratings_versus_ratings_per_year_pre_1993} Versus
+Post-1993 movies trend in Figure
+\ref{fig:movies_average_ratings_versus_ratings_per_year_post_1993}
+above.
+
+\begin{verbatim}
+`geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+\end{verbatim}
+
+\begin{figure}
+\centering
+\includegraphics{figures/md_5-1.pdf}
+\caption{Movies average ratings versus ratings per year pre
+1993\label{fig:movies_average_ratings_versus_ratings_per_year_pre_1993}}
+\end{figure}
+
+\newpage
+
+\hypertarget{movie-rating-date-time---a-closer-look}{%
+\paragraph{Movie Rating Date-Time - a closer
+look}\label{movie-rating-date-time---a-closer-look}}
+
+The Movielens edx data Table \ref{tbl:movielens_data} also includes a
+time stamp. This variable represents the time and date in which the
+rating was provided. The units are seconds since January 1, 1970. We
+create a new column date with the date named \emph{rating\_date} in
+subsection \protect\hyperlink{modify_edx}{Modify edx} to get Table
+\ref{tbl:movielens_edx_movie_release_date} .
+
+We compute the average rating for each week and plot this average
+against day. See Figure
+\ref{fig:movies_average_ratings_for_each_week_versus_day} :
+
+\begin{verbatim}
+`geom_smooth()` using method = 'loess' and formula 'y ~ x'
+\end{verbatim}
+
+\begin{figure}
+\centering
+\includegraphics{figures/rd_1-1.pdf}
+\caption{Movies average ratings for each week versus
+day\label{fig:movies_average_ratings_for_each_week_versus_day}}
+\end{figure}
+
+The plot shows some evidence of a time effect. If we define \(d_{u,i}\)
+as the day for user's \emph{u} rating of movie \emph{i}, then the
+following model is most appropriate:
+
+\(Y_{u,i}=\mu+b_{i}+b_{u}+f(d_{u,i})+\epsilon_{u,i}\), with f a smooth
+function of \(d_{u,i}\)
+
+\textbf{\emph{Modify edx}} Let's update the \textbf{\emph{edx}} table to
+get Table \ref{tbl:movielens_edx_avg_rating_time_effect} below:
+
+\begin{table}[H]
+
+\caption{\label{tab:rd_2}Movielens edx data with average rating due to rating time effect\label{tbl:movielens_edx_avg_rating_time_effect}}
+\centering
+\fontsize{6}{8}\selectfont
+\begin{tabular}[t]{rrrlllrlr}
+\toprule
+userId & movieId & rating & title & genres & rating\_date & movie\_dt & date & avg\_rating\\
+\midrule
+1 & 122 & 5 & Boomerang & Comedy|Romance & 1996-08-02 11:24:06 & 1992 & 1996-08-04 & 3.538801\\
+1 & 185 & 5 & Net, The & Action|Crime|Thriller & 1996-08-02 10:58:45 & 1995 & 1996-08-04 & 3.538801\\
+1 & 292 & 5 & Outbreak & Action|Drama|Sci-Fi|Thriller & 1996-08-02 10:57:01 & 1995 & 1996-08-04 & 3.538801\\
+1 & 316 & 5 & Stargate & Action|Adventure|Sci-Fi & 1996-08-02 10:56:32 & 1994 & 1996-08-04 & 3.538801\\
+1 & 329 & 5 & Star Trek: Generations & Action|Adventure|Drama|Sci-Fi & 1996-08-02 10:56:32 & 1994 & 1996-08-04 & 3.538801\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{TODO: Repeat above for validation data as well and somehow add
+this to the modelling section}
+
+\textbf{\emph{Modify validation}} We need to do the above
+\textbf{\emph{avg\_rating\_time\_effect}} update for the validation data
+as well. Let's update the \textbf{\emph{validation}} table to get Table
+\ref{tbl:movielens_validation_avg_rating_time_effect} below:
+
+\begin{table}[H]
+
+\caption{\label{tab:rd_3}Movielens validation data with average rating due to rating time effect\label{tbl:movielens_validation_avg_rating_time_effect}}
+\centering
+\fontsize{6}{8}\selectfont
+\begin{tabular}[t]{rrrlllrlr}
+\toprule
+userId & movieId & rating & title & genres & rating\_date & movie\_dt & date & avg\_rating\\
+\midrule
+1 & 231 & 5 & Dumb \& Dumber & Comedy & 1996-08-02 10:56:32 & 1994 & 1996-08-04 & 3.555820\\
+1 & 480 & 5 & Jurassic Park & Action|Adventure|Sci-Fi|Thriller & 1996-08-02 11:00:53 & 1993 & 1996-08-04 & 3.555820\\
+1 & 586 & 5 & Home Alone & Children|Comedy & 1996-08-02 11:07:48 & 1990 & 1996-08-04 & 3.555820\\
+2 & 151 & 3 & Rob Roy & Action|Drama|Romance|War & 1997-07-07 03:34:10 & 1995 & 1997-07-06 & 3.606571\\
+2 & 858 & 2 & Godfather, The & Crime|Drama & 1997-07-07 03:20:45 & 1972 & 1997-07-06 & 3.606571\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+
+\hypertarget{genres-combinations-per-movie---a-closer-look}{%
+\paragraph{Genres combinations per movie - a closer
+look}\label{genres-combinations-per-movie---a-closer-look}}
+
+The movielens data Table \ref{tbl:movielens_edx_avg_rating_time_effect}
+also has a genres column. This column includes every genre that applies
+to the movie. Some movies fall under several genres. We define a
+category as whatever combination appears in this column.
+
+Here we keep only categories with more than 1,000 ratings. Then compute
+the average and standard error for each category, and plot these as
+error bar plots. See Figure \ref{fig:genres_error_bar_plots} :
+
+\begin{figure}
+\centering
+\includegraphics{figures/gnr-1.pdf}
+\caption{Movies genres error bar
+plots\label{fig:genres_error_bar_plots}}
+\end{figure}
+
+The plot shows strong evidence of a genre effect.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{    knitr}\SpecialCharTok{::}\FunctionTok{knit\_exit}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+
+\end{document}

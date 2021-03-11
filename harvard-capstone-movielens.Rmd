@@ -1,32 +1,114 @@
 ---
-title: "Harvard Capstone Movielens"
+title: "Movielens  \n A Harvard Capstone Project"
 author: "Manoj Bijoor"
-date: "3/7/2021"
-output: github_document
-#  pdf_document: 
-#    toc: yes
-#    toc_depth: 3
-#    fig_caption: yes
-#    number_sections: yes
-#    keep_tex: yes
-#  html_document: 
-#    keep_md: true
+email: manoj.bijoor@gmail.com
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  pdf_document: 
+    latex_engine: xelatex
+    number_sections: yes
+    keep_tex: yes
+    keep_md: yes
+    df_print: kable
+    highlight: pygments
+    extra_dependencies: "subfig"
+  github_document: default
+  html_document: 
+    keep_md: true
+    code_folding: hide
+urlcolor: blue
+linkcolor: blue
+#citecolor: blue
+header-includes:
+  \usepackage{amsmath}
+  \usepackage{pdflscape}
+  # \usepackage{float}
+  # \usepackage{flafter}
 ---
 
-\newpage  
-
-\tableofcontents  
-
-\listoffigures  
-
-\listoftables  
-
-
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::knit_hooks$set(time_it = local({
+  now <- NULL
+  function(before, options) {
+    if (before) {
+      # record the current time before each chunk
+      now <<- Sys.time()
+    } else {
+      # calculate the time difference after a chunk
+      res <- difftime(Sys.time(), now)
+      # return a character string to show the time
+      # paste("Time for this code chunk to run:", res)
+      paste("Time for the chunk", options$label, "to run:", res)
+    }
+  }
+}))
+
+# knitr::opts_chunk$set(fig.pos = "!H", out.extra = "")
+knitr::opts_chunk$set(echo = TRUE,
+                      fig.path = "figures/")
+
+# Beware, using the "time_it" hook messes up fig.cap, \label, \ref
+# knitr::opts_chunk$set(time_it = TRUE)
+#knitr::opts_chunk$set(eval = FALSE)
 ```
 
+<!-- #```{r, time_it = TRUE, eval=FALSE, echo=FALSE} -->
+<!-- # Sys.sleep(2) -->
+<!-- #``` -->
+
+```{r, include=FALSE, echo=FALSE}
+  library(ggplot2)
+  library(kableExtra)
+```
+
+<!-- ------------------------------ -->
+
+\pagenumbering{roman}     <!-- first page with Roman numbering -->
+
+\newpage                  <!-- new page -->
+
+<!-- ------------------------------ -->
+
+\newpage 
+
+\begin{center}
+
+\large{Abstract}
+
+\end{center}
+
+\bigskip
+
+...this is the abstract text...
+
+<!-- ------------------------------ -->
+
+\newpage 
+
+\setcounter{tocdepth}{5}
+\tableofcontents
+
+<!-- ------------------------------ -->
+
 \newpage
+# List of tables{-}
+\renewcommand{\listtablename}{} <!-- removes default section name -->
+\listoftables
+
+\newpage
+# List of figures{-}
+\renewcommand{\listfigurename}{}
+\listoffigures
+
+<!-- ------------------------------ -->
+
+\newpage
+
+\pagenumbering{arabic} 
+
+<!-- ------------------------------ -->
+
+
 # Project Overview: MovieLens - A Harvard Capstone Project  
 A movie recommendation system using the MovieLens dataset.  
 
@@ -39,21 +121,15 @@ I will use the [10M version of the MovieLens dataset](https://grouplens.org/data
 **First**, I will download the MovieLens data and run code provided to generate my datasets.
 
 **Second**, I will train a machine learning algorithm using the inputs in one subset to predict movie ratings in the validation set.  
-  
 
----  
 
 ## Create Train and Final Hold-out Test Sets  
 I will develop my algorithm using the edx set. For a final test of my final algorithm, I predict movie ratings in the validation set (the final hold-out test set) as if they were unknown. [RMSE](https://en.wikipedia.org/wiki/Root-mean-square_deviation) will be used to evaluate how close my predictions are to the true values in the validation set (the final hold-out test set).  
-  
 
----  
 
 ### Important: Data sets usage  
 The validation data (the final hold-out test set) will NOT be used for training, developing, or selecting my algorithm and it will ONLY be used for evaluating the RMSE of my final algorithm. The final hold-out test set will only be used at the end of my project with my final model. It will not be used to test the RMSE of multiple models during model development. I will split the edx data into separate training and test sets to design and test my algorithm.   
-  
 
----  
 
 ## Final Product  
 ### My submission for this project is three files:  
@@ -67,15 +143,7 @@ The report documents the analysis and presents the findings, along with supporti
 3. a results section that presents the modeling results and discusses the model performance
 4. a conclusion section that gives a brief summary of the report, its limitations and future work  
 
-
----  
-
-```{r knitr_knit_exit}
-knitr::knit_exit()
-```
-
-
-```{r create_edx_val, eval=TRUE, echo=FALSE, cache=FALSE, include=FALSE, warning=FALSE}
+```{r create_edx_val, eval=TRUE, echo=FALSE, warning=FALSE, cache=FALSE, include=FALSE}
 
 ################################
 # Create edx set, validation set
@@ -127,11 +195,454 @@ validation <- temp %>%
 removed <- anti_join(temp, validation)
 edx <- rbind(edx, removed)
 
-save(ratings, file = "ratings.rda")
-save(movies, file = "movies.rda")
+save(ratings, file = "rdas/ratings.rda")
+save(movies, file = "rdas/movies.rda")
 rm(dl, ratings, movies, test_index, temp, movielens, removed)
 
-save(edx, file = "edx.rda")
-save(validation, file = "validation.rda")
+save(edx, file = "rdas/edx.rda")
+save(validation, file = "rdas/validation.rda")
 ```
+
+---  
+
 \newpage
+# Exploratory Data Analysis
+
+## Data Wrangling
+
+[Data wrangling](https://en.wikipedia.org/wiki/Data_wrangling), sometimes referred to as data munging, is the process of transforming and mapping data from one "raw" data form into another format with the intent of making it more appropriate and valuable for a variety of downstream purposes such as analytics.
+
+The main steps could be described as follows:  
+1. Discovering  
+2. Structuring  
+3. Cleaning  
+4. Enriching  
+5. Validating  
+6. Publishing
+
+Let's perform the steps or combinations thereof starting with Initial data Exploration & Visualization in the next few subsections.
+
+### Initial data Exploration & Visualization
+
+The first ten rows out of `r dim(edx)[1]` rows of the Movielens data can be found in Table \ref{tbl:movielens_data}.
+
+```{r, eda_1, include=TRUE, echo=FALSE, message=FALSE}
+  kable(edx[1:10,], "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="Movielens data\\label{tbl:movielens_data}") %>%
+    kable_styling(latex_options=c("HOLD_position"), font_size=7)
+```
+
+Each row represents a rating given by one user to one movie.
+
+We can see the number of unique users that provided ratings and how many unique movies were rated. The unique genres here is based on a column called "genres" that includes every genre that applies to the movie. Some movies fall under several genres. Defining a category as whatever combination appears in this column, we are going to refer to this category as "unique genres" or simply "genres" from now on.  
+
+The number of unique users, movies and genres can be found in Table \ref{tbl:uniq_users_movies_genres}.
+
+```{r, eda_2, include=TRUE, echo=FALSE, message=FALSE}
+unique_u_m_g <- edx %>% 
+  summarize(unique_users = n_distinct(userId),
+            unique_movies = n_distinct(movieId), 
+            unique_genres = n_distinct(genres))
+
+kable(unique_u_m_g, "latex", 
+      booktabs=TRUE, linesep="",
+      caption="Unique Users, Movies and Genres\\label{tbl:uniq_users_movies_genres}") %>%  kable_styling(latex_options=c("HOLD_position"))
+```
+
+If we multiply the number of unique users by number of unique movies, we get a very large number, actually `r (unique_u_m_g$unique_users)*(unique_u_m_g$unique_movies)`, yet our data table has `r dim(edx)[1]` rows. This implies that not every user rated every movie. So we can think of these data as a very large matrix, with users on the rows and movies on the columns, with many empty cells. The 'gather' function permits us to convert it to this format, but if we try it for the entire matrix, it will crash R.
+
+Let's show the matrix of seven users ie: userId's 13-20 and four movies in Table \ref{tbl:matrix_seven_users_four_movies}.
+
+```{r, eda_3, include=TRUE, echo=FALSE, message=FALSE}
+keep <- edx %>%
+  dplyr::count(movieId) %>%
+  top_n(4) %>%
+  pull(movieId)
+tab <- edx %>%
+  filter(userId %in% c(13:20)) %>% 
+  filter(movieId %in% keep) %>% 
+  select(userId, title, rating) %>% 
+  spread(title, rating)
+  
+kable(tab, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="Matrix of seven users and four movies\\label{tbl:matrix_seven_users_four_movies}") %>%
+    kable_styling(latex_options=c("HOLD_position"), font_size=8)
+```
+
+\newpage
+#### A Very Sparse Matrix
+
+You can think of the task of a recommendation system as filling in the 'NAs' in the table above. To see how sparse the matrix is, here is the matrix in Figure \ref{fig:matr} for a random sample of 100 movies and 100 users with yellow indicating a user/movie combination for which we have a rating.
+
+```{r eda_4, include=TRUE, echo=FALSE, message=FALSE, warning=FALSE, fig.pos="h!", fig.cap="A Very Sparse Matrix\\label{fig:matr}"}
+users <- sample(unique(edx$userId), 100)
+rafalib::mypar()
+edx %>% filter(userId %in% users) %>% 
+  select(userId, movieId, rating) %>%
+  mutate(rating = 1) %>%
+  spread(movieId, rating) %>% select(sample(ncol(.), 100)) %>% 
+  as.matrix() %>% t(.) %>%
+  image(1:100, 1:100,. , xlab="Movies", ylab="Users")
+abline(h=0:100+0.5, v=0:100+0.5, col = "grey")
+```
+
+This machine learning challenge is quite complicated, because each outcome $Y$ has a different set of predictors. To see this, note that if we are predicting the rating for movie *i* by user *u*, in principle, all other ratings related to movie *i* and by user *u* may be used as predictors, but different users rate different movies and a different number of movies. Furthermore, we may be able to use information from other movies that we have determined are similar to movie *i* or from users determined to be similar to user *u*. In essence, the entire matrix can be used as predictors for each cell.
+
+\newpage
+#### General Properties of the data
+
+Let's look at some of the **_general properties_** of the data to better understand the challenges.
+
+The **_first thing_** we notice is that some movies get rated more than others. Figure \ref{fig:movies_getting_rated} shows the Movies getting rated distribution. This should not surprise us given that there are blockbuster movies watched by millions and artsy, independent movies watched by just a few:
+
+```{r, eda_5, echo=FALSE, eval=TRUE, fig.pos="h!", fig.cap="Movies getting rated distribution\\label{fig:movies_getting_rated}"}
+edx %>% 
+  dplyr::count(movieId) %>% 
+  ggplot(aes(n)) + 
+  geom_histogram(bins = 30, color = "black") + 
+  scale_x_log10() +  # try with and without this line
+  ggtitle("Movies")
+```
+
+\newpage
+Our **_second observation_** is that some users are more active than others at rating movies. Figure \ref{fig:users_rating_movies} shows Users rating movies distribution:
+
+```{r, eda_6, echo=FALSE, eval=TRUE, fig.pos="h!", fig.cap="Users rating movies distribution\\label{fig:users_rating_movies}"}
+edx %>%
+  dplyr::count(userId) %>% 
+  ggplot(aes(n)) + 
+  geom_histogram(bins = 30, color = "black") + 
+  scale_x_log10() + # try with and without this line
+  ggtitle("Users")
+
+rm(tab,keep,unique_u_m_g,users)
+```
+
+---  
+
+\newpage  
+
+### Further data Exploration, Visualization & Modification  
+
+#### Modify edx {#modify_edx}
+
+**Convert timestamp** in Movielens edx data Table \ref{tbl:movielens_data} into date-time, a more readable and useful format named _rating_date_ in Table \ref{tbl:movielens_edx_data_rating_date} below.
+
+
+```{r, dw_1, echo=FALSE, eval=TRUE}
+edx_dt <- edx %>% 
+  mutate(rating_date = as_datetime(timestamp)) %>% 
+  select(-timestamp)
+rm(edx)
+
+kable(edx_dt[1:5,], "latex", escape=TRUE, booktabs=TRUE, linesep="", caption="Movielens edx data with rating date-time\\label{tbl:movielens_edx_data_rating_date}") %>%
+    kable_styling(latex_options=c("HOLD_position"), font_size=8)
+```
+
+**Split title** in Movielens edx data Table \ref{tbl:movielens_data} into title and year movie released, a more useful format named _movie_dt_ in Table \ref{tbl:movielens_edx_movie_release_date} below.  
+
+```{r, dw_2, echo=FALSE, eval=TRUE}
+td <- edx_dt$title
+movie_dt <- str_extract(td, "\\([0-9]{4}\\)$") %>%
+  str_extract("[0-9]{4}")
+title_o <- str_replace(td, "\\([0-9]{4}\\)$", "")
+edx_md <- edx_dt %>% mutate(title=title_o, movie_dt=as.numeric(movie_dt))
+rm(td,movie_dt,title_o,edx_dt)
+save(edx_md, file = "rdas/edx_md.rda")
+
+kable(edx_md[1:5,], "latex", escape=TRUE, booktabs=TRUE, linesep="", caption="Movielens edx data with movie release date\\label{tbl:movielens_edx_movie_release_date}") %>%
+    kable_styling(latex_options=c("HOLD_position"), font_size=8)
+```
+
+
+---  
+
+\newpage  
+
+#### Modify validation, repeat above steps
+
+**Convert timestamp** in Movielens validation data Table \ref{tbl:movielens_data} into date-time, a more readable and useful format named _rating_date_ in Table \ref{tbl:movielens_val_data_rating_date} below.  
+
+```{r, dw_3, echo=FALSE, eval=TRUE}
+validation_dt <- validation %>% 
+  mutate(rating_date = as_datetime(timestamp)) %>% 
+  select(-timestamp)
+rm(validation)
+
+kable(validation_dt[1:5,], "latex", escape=TRUE, booktabs=TRUE, linesep="", caption="Movielens validation data with rating date-time\\label{tbl:movielens_val_data_rating_date}") %>%
+    kable_styling(latex_options=c("HOLD_position"), font_size=8)
+```
+
+**Split title** in Movielens validation data Table \ref{tbl:movielens_data} into title and year movie released, a more useful format named _movie_dt_ in Table \ref{tbl:movielens_val_movie_release_date} below.  
+
+```{r, dw_4, echo=FALSE, eval=TRUE}
+td <- validation_dt$title
+movie_dt <- str_extract(td, "\\([0-9]{4}\\)$") %>% 
+  str_extract("[0-9]{4}")
+title_o <- str_replace(td, "\\([0-9]{4}\\)$", "")
+validation_md <- validation_dt %>% mutate(title=title_o, movie_dt=as.numeric(movie_dt))
+rm(td,movie_dt,title_o,validation_dt)
+save(validation_md, file = "rdas/validation_md.rda")
+
+kable(validation_md[1:5,], "latex", escape=TRUE, booktabs=TRUE, linesep="", caption="Movielens validation data with movie release date\\label{tbl:movielens_val_movie_release_date}") %>%
+    kable_styling(latex_options=c("HOLD_position"), font_size=8)
+
+# rm(validation_md)
+```
+
+---  
+
+\newpage
+
+#### Movie Release Date - a closer look
+
+Computing the number of ratings for each movie and then plotting it against the year the movie came out, that is the release date and using the square root transformation on the counts using Table \ref{tbl:movielens_edx_movie_release_date} , we get see Figure \ref{fig:ratings_movie_release_date_all_dates} :
+
+<!-- # ```{r, md_1, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.show="hold", out.width="50%", fig.cap="Ratings Movie Release Date - All dates\\label{fig:ratings_movie_release_date_all_dates}"} -->
+
+```{r, md_1, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.ncol = 1, out.width= "70%", fig.align = "center", fig.cap="Ratings Movie Release Date - All dates\\label{fig:ratings_movie_release_date_all_dates}", fig.subcap=c('All data points only', 'Smooth line through all data points')}
+ratings_m_y <- edx_md %>%
+  group_by(movieId) %>%
+  summarize(n = n_distinct(userId), year = as.character(first(movie_dt))) %>% 
+  mutate(sqrt_n=sqrt(n)) %>% 
+  group_by(year) %>% 
+  mutate(r_median=median(sqrt_n)) %>% select(year,r_median) %>% 
+  unique() %>% arrange(desc(r_median))
+
+# min(edx_md$movie_dt)
+# # [1] 1915
+# max(edx_md$movie_dt)
+# # [1] 2008
+
+# View(ratings_m_y)
+ggplot(data=ratings_m_y, aes(x=year, y=r_median) ) + 
+  geom_point( size=1, colour="#000080" ) + 
+  theme_light(base_size=8) + 
+  # labs(title="", x="\nyear", y="r_median\n") + 
+  scale_x_discrete(breaks=seq(min(edx_md$movie_dt),max(edx_md$movie_dt),by=2)) + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+spline_int <- as.data.frame(spline(ratings_m_y$year, ratings_m_y$r_median))
+
+ggplot(data=ratings_m_y, aes(x=year, y=r_median) ) +
+  geom_point(data = spline_int, aes(x = x, y = y)) +
+  geom_line(data = spline_int, aes(x = x, y = y)) +
+  theme_light(base_size=8) +
+  # scale_x_discrete(breaks=seq(min(edx_md$movie_dt),max(edx_md$movie_dt),by=2)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+rm(ratings_m_y)
+
+```
+
+we see that, on average, movies that came out after 1993 get more ratings. We also see that with newer movies, starting in 1993, the number of ratings decreases with year: the more recent a movie is, the less time users have had to rate it.
+
+
+\newpage
+Among movies that came out in 1991 or later, we select the top 25 movies with the highest average number of ratings per year (n/year) and calculate the average rating of each of them. To calculate number of ratings per year, use 2018 as the end year. See Figure \ref{fig:25_movies_avg_and_most_ratings_per_year_post_1991} :
+
+```{r, md_2, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="25 Movies with the most ratings per year and their average rating post 1991\\label{fig:25_movies_avg_and_most_ratings_per_year_post_1991}"}
+res2 <- edx_md %>%
+  filter(movie_dt >= 1991) %>%
+  group_by(movieId) %>%
+  # summarize(avg_rating = mean(rating), n = n(), title=title[1], years=2018 - min(movie_dt)) %>% 
+  summarize(avg_rating = mean(rating), n = n(), title=title[1], years=2018 - first(movie_dt)) %>%
+  mutate(n_year = n / years) %>%
+  top_n(25, n_year) %>%
+  arrange(desc(n_year))
+
+# qplot(res2$years,res2$n)
+ggplot(res2,aes(years,n)) + 
+  geom_line() + 
+  geom_smooth() + 
+  geom_vline(xintercept = 25) + # 1993
+  geom_vline(xintercept = 27) # 1991
+rm(res2)
+```
+
+\newpage
+Among movies that came out in 1993 or later, we select the top 25 movies with the highest average number of ratings per year (n/year) and calculate the average rating of each of them. To calculate number of ratings per year, use 2018 as the end year. See Figure \ref{fig:25_movies_avg_and_most_ratings_per_year_post_1993} :
+
+```{r, md_3, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="25 Movies with the most ratings per year and their average rating post 1993\\label{fig:25_movies_avg_and_most_ratings_per_year_post_1993}"}
+res2_1993_plus <- edx_md %>%
+  filter(movie_dt >= 1993) %>%
+  group_by(movieId) %>%
+  # summarize(avg_rating = mean(rating), n = n(), title=title[1], years=2018 - min(movie_dt)) %>% 
+  summarize(avg_rating = mean(rating), n = n(), title=title[1], years=2018 - first(movie_dt)) %>% 
+  mutate(n_year = n / years) %>%
+  top_n(25, n_year) %>%
+  arrange(desc(n_year))
+# qplot(res2_1993_plus$years,res2_1993_plus$n)
+ggplot(res2_1993_plus,aes(years,n)) + 
+  geom_line() + 
+  geom_smooth() + 
+  geom_vline(xintercept = 25) # 1993
+
+rm(res2_1993_plus)
+```
+
+\newpage
+We see that the most rated movies tend to have above average ratings. This is not surprising: more people watch popular movies. To confirm this, we stratify the post 1993 movies by ratings per year and compute their average ratings. Figure \ref{fig:movies_average_ratings_versus_ratings_per_year_post_1993} is a plot of average ratings versus ratings per year showing an estimate of the trend.
+
+We see that the more a movie is rated, the higher the rating.
+
+**Post-1993 movies**   
+```{r, md_4, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Movies average ratings versus ratings per year post  1993\\label{fig:movies_average_ratings_versus_ratings_per_year_post_1993}"}
+res3 <- edx_md %>%
+  filter(movie_dt >= 1993) %>%
+  group_by(movieId) %>%
+  summarize(avg_rating = mean(rating), n = n(), title=title[1], years=2018 - min(movie_dt)) %>%
+  mutate(n_year = n / years)
+res3 %>% 
+  group_by(round(n_year)) %>% 
+  ggplot(aes(n_year,avg_rating)) + geom_point() + geom_smooth()
+
+rm(res3)
+```
+
+\newpage
+**Pre-1993 movies**  
+Compare Pre-1993 movies trend shown here in Figure \ref{fig:movies_average_ratings_versus_ratings_per_year_pre_1993} Versus Post-1993 movies trend in Figure \ref{fig:movies_average_ratings_versus_ratings_per_year_post_1993} above.
+
+```{r, md_5, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Movies average ratings versus ratings per year pre  1993\\label{fig:movies_average_ratings_versus_ratings_per_year_pre_1993}"}
+res3_b <- edx_md %>%
+  filter(movie_dt < 1993) %>%
+  group_by(movieId) %>%
+  summarize(avg_rating = mean(rating), n = n(), title=title[1], years=2018 - min(movie_dt)) %>%
+  mutate(n_year = n / years)
+res3_b %>% 
+  group_by(round(n_year)) %>% 
+  ggplot(aes(n_year,avg_rating)) + geom_point() + geom_smooth()
+
+rm(res3_b)
+```
+
+
+\newpage
+#### Movie Rating Date-Time - a closer look  
+
+The Movielens edx data Table \ref{tbl:movielens_data}  also includes a time stamp. This variable represents the time and date in which the rating was provided. The units are seconds since January 1, 1970. We create a new column date with the date named _rating_date_ in subsection [Modify edx](#modify_edx) to get Table \ref{tbl:movielens_edx_movie_release_date} . 
+
+We compute the average rating for each week and plot this average against day. See Figure \ref{fig:movies_average_ratings_for_each_week_versus_day} : 
+
+```{r, rd_1, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Movies average ratings for each week versus day\\label{fig:movies_average_ratings_for_each_week_versus_day}"}  
+edx_md %>% mutate(date = round_date(rating_date, unit = "week")) %>%
+  group_by(date) %>%
+  summarize(avg_rating = mean(rating)) %>%
+  ggplot(aes(date, avg_rating)) +
+  geom_point() +
+  geom_smooth()
+```
+ 
+The plot shows some evidence of a time effect. If we define $d_{u,i}$ as the day for user's *u* rating of movie *i*, then the following model is most appropriate:
+
+$Y_{u,i}=\mu+b_{i}+b_{u}+f(d_{u,i})+\epsilon_{u,i}$, with f a smooth function of $d_{u,i}$
+
+**_Modify edx_**
+Let's update the **_edx_** table to get Table \ref{tbl:movielens_edx_avg_rating_time_effect} below:
+
+```{r, rd_2, echo=FALSE, eval=TRUE}  
+edx_md <- edx_md %>% mutate(date = round_date(rating_date, unit = "week")) %>%
+  group_by(date) %>%
+  mutate(avg_rating = mean(rating)) %>% ungroup()
+save(edx_md, file = "rdas/edx_md.rda")
+
+kable(edx_md[1:5,], "latex", escape=TRUE, booktabs=TRUE, linesep="", caption="Movielens edx data with average rating due to rating time effect\\label{tbl:movielens_edx_avg_rating_time_effect}") %>%
+    kable_styling(latex_options=c("HOLD_position"), font_size=6)
+```
+
+**TODO: Repeat above for validation data as well and somehow add this to the modelling section**
+
+**_Modify validation_**
+We need to do the above **_avg_rating_time_effect_** update for the validation data as well.
+Let's update the **_validation_** table to get Table \ref{tbl:movielens_validation_avg_rating_time_effect} below:
+
+```{r, rd_3, echo=FALSE, eval=TRUE}  
+validation_md <- validation_md %>% mutate(date = round_date(rating_date, unit = "week")) %>%
+  group_by(date) %>%
+  mutate(avg_rating = mean(rating)) %>% ungroup()
+save(validation_md, file = "rdas/validation_md.rda")
+
+kable(validation_md[1:5,], "latex", escape=TRUE, booktabs=TRUE, linesep="", caption="Movielens validation data with average rating due to rating time effect\\label{tbl:movielens_validation_avg_rating_time_effect}") %>%
+    kable_styling(latex_options=c("HOLD_position"), font_size=6)
+
+rm(validation_md)
+```
+
+
+\newpage
+#### Genres combinations per movie - a closer look   
+
+The movielens data Table \ref{tbl:movielens_edx_avg_rating_time_effect} also has a genres column. This column includes every genre that applies to the movie. Some movies fall under several genres. We define a category as whatever combination appears in this column. 
+
+Here we keep only categories with more than 1,000 ratings. Then compute the average and standard error for each category, and plot these as error bar plots. See Figure \ref{fig:genres_error_bar_plots} : 
+
+```{r, gnr, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Movies genres error bar plots\\label{fig:genres_error_bar_plots}"}
+edx_md %>% group_by(genres) %>%
+  summarize(n = n(), avg = mean(rating), se = sd(rating)/sqrt(n())) %>%
+  filter(n >= 1000) %>% 
+  mutate(genres = reorder(genres, avg)) %>%
+  ggplot(aes(x = genres, y = avg, ymin = avg - 2*se, ymax = avg + 2*se)) + 
+  geom_point() +
+  geom_errorbar() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+The plot shows strong evidence of a genre effect.
+
+```{r knitr_knit_exit}
+	knitr::knit_exit()
+```
+
+---  
+
+\newpage
+
+\newpage
+
+\newpage
+# Results
+
+---  
+
+\newpage
+# Conclusion
+
+---  
+
+\newpage
+
+# Appendix: All code for this report
+
+#```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+#```
+
+---  
+
+\newpage
+# List of tables{-}
+\renewcommand{\listtablename}{} <!-- removes default section name -->
+\listoftables
+
+---  
+
+\newpage
+# List of figures{-}
+\renewcommand{\listfigurename}{}
+\listoffigures
+
+---  
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
+
+```{r}
+fit <- lm(mpg ~ cyl + disp, mtcars)
+# show the theoretical model
+equatiomatic::extract_eq(fit)
+```
+
+```{r, include=FALSE}
+options(tinytex.verbose = FALSE)
+```
+
+
