@@ -1,5 +1,5 @@
 ---
-title: "Movielens  \n A Harvard Capstone Project"
+title: "Movielens  \n Movie Recommendation System  \n A Harvard Capstone Project"
 author: "Manoj Bijoor"
 email: manoj.bijoor@gmail.com
 date: "`r format(Sys.time(), '%B %d, %Y')`"
@@ -12,18 +12,50 @@ output:
     df_print: kable
     highlight: pygments
     extra_dependencies: "subfig"
+  md_document:
+    variant: markdown_github 
+    # check https://bookdown.org/yihui/rmarkdown/markdown-document.html#markdown-variants
   github_document: default
   html_document: 
     keep_md: true
     code_folding: hide
-urlcolor: blue
-linkcolor: blue
+# urlcolor: blue
+# linkcolor: blue
 #citecolor: blue
+#geometry: margin=1in
+links-as-notes: true
 header-includes:
+  \usepackage[utf8]{inputenc}
+  \usepackage[english]{babel}
+  \usepackage[]{hyperref}
+  \hypersetup{
+    backref,
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={"Movielens Harvard Capstone"},
+    bookmarks=true,
+    pdfpagemode=FullScreen,
+    pdfstartpage=1,
+    hyperindex=true,
+    pageanchor=true,
+    }
   \usepackage{amsmath}
   \usepackage{pdflscape}
+  \usepackage[titles]{tocloft}
+  \usepackage{tocloft}
+  \usepackage{titlesec}
+  \usepackage{longtable}
+  \usepackage{xpatch}
+  \usepackage[T1]{fontenc}
+  \usepackage{imakeidx}
+  \makeindex[columns=3, title=Alphabetical Index, intoc]
+
+  # \usepackage{letltxmacro}%
   # \usepackage{float}
   # \usepackage{flafter}
+  # \usepackage[titles]{tocloft}
 ---
 
 ```{r setup, include=FALSE}
@@ -84,21 +116,58 @@ knitr::opts_chunk$set(echo = TRUE,
 <!-- ------------------------------ -->
 
 \newpage 
-
+\clearpage
+\phantomsection
+\setcounter{secnumdepth}{5}
 \setcounter{tocdepth}{5}
+
 \tableofcontents
+\clearpage
 
 <!-- ------------------------------ -->
+<!-- \renewcommand{\theHsection}{\thepart.section.\thesection} -->
 
 \newpage
+\clearpage
+\phantomsection
 # List of tables{-}
 \renewcommand{\listtablename}{} <!-- removes default section name -->
+
 \listoftables
+\clearpage
 
 \newpage
+\clearpage
+\phantomsection
 # List of figures{-}
 \renewcommand{\listfigurename}{}
+
 \listoffigures
+\clearpage
+
+\newpage
+\clearpage
+\phantomsection
+\newcommand{\listequationsname}{List of Equations}
+\newlistof{equations}{equ}{\listequationsname}
+\newcommand{\equations}[1]{%
+\refstepcounter{equations}
+\par\noindent\textbf{equations \theequations. #1}
+\addcontentsline{equ}{equations}{\thesection. \protect\numberline{\theequations}#1}\par}
+\xpretocmd{\listofequations}{\addcontentsline{toc}{section}{\listequationsname}}{}{}
+
+<!-- \setlength{\cftequationsindent}{1.5em} -->
+<!-- \setlength{\cftequationsnumwidth}{2.3em} -->
+<!-- \renewcommand{\cftequtitlefont}{\normalfont\Large\bfseries} -->
+
+\makeatletter
+\let\l@equations\l@figure
+\makeatother
+
+\renewcommand{\listequationsname}{}
+
+\listofequations
+\clearpage
 
 <!-- ------------------------------ -->
 
@@ -202,8 +271,6 @@ rm(dl, ratings, movies, test_index, temp, movielens, removed)
 save(edx, file = "rdas/edx.rda")
 save(validation, file = "rdas/validation.rda")
 ```
-
----  
 
 \newpage
 # Exploratory Data Analysis
@@ -316,8 +383,6 @@ edx %>%
 rm(tab,keep,unique_u_m_g,users)
 ```
 
----  
-
 \newpage  
 
 ### Further data Exploration, Visualization & Modification  
@@ -352,9 +417,6 @@ kable(edx_md[1:5,], "latex", escape=TRUE, booktabs=TRUE, linesep="", caption="Mo
     kable_styling(latex_options=c("HOLD_position"), font_size=8)
 ```
 
-
----  
-
 \newpage  
 
 #### Modify validation, repeat above steps
@@ -387,8 +449,6 @@ kable(validation_md[1:5,], "latex", escape=TRUE, booktabs=TRUE, linesep="", capt
 
 # rm(validation_md)
 ```
-
----  
 
 \newpage
 
@@ -531,10 +591,16 @@ edx_md %>% mutate(date = round_date(rating_date, unit = "week")) %>%
   geom_point() +
   geom_smooth()
 ```
- 
-The plot shows some evidence of a time effect. If we define $d_{u,i}$ as the day for user's *u* rating of movie *i*, then the following model is most appropriate:
 
-$Y_{u,i}=\mu+b_{i}+b_{u}+f(d_{u,i})+\epsilon_{u,i}$, with f a smooth function of $d_{u,i}$
+The plot shows some evidence of a time effect. If we define $d_{u,i}$ as the day for user's *u* rating of movie *i*, then the following model given by Equation \ref{eq:EqTimeEffect} is most appropriate:
+
+<!-- $Y_{u,i}=\mu+b_{i}+b_{u}+f(d_{u,i})+\epsilon_{u,i}$, with f a smooth function of $d_{u,i}$ -->
+
+\equations{Equation \ref{eq:EqTimeEffect}}
+\label{eq:EqTimeEffect}
+\begin{equation}
+Y_{u,i}=\mu+b_{i}+b_{u}+f(d_{u,i})+\epsilon_{u,i}\text{, with f a smooth function of }d_{u,i}
+\end{equation}
 
 **_Modify edx_**
 Let's update the **_edx_** table to get Table \ref{tbl:movielens_edx_avg_rating_time_effect} below:
@@ -588,15 +654,6 @@ edx_md %>% group_by(genres) %>%
 
 The plot shows strong evidence of a genre effect.
 
-```{r knitr_knit_exit}
-	knitr::knit_exit()
-```
-
----  
-
-\newpage
-
-\newpage
 
 \newpage
 # Results
@@ -609,13 +666,23 @@ The plot shows strong evidence of a genre effect.
 ---  
 
 \newpage
-
 # Appendix: All code for this report
 
-#```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
-#```
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
 
 ---  
+
+\newpage
+
+Terms like generate\index{generate} and some\index{others} will also show up.
+
+\printindex
+
+
+```{r knitr_knit_exit}
+	knitr::knit_exit()
+```
 
 \newpage
 # List of tables{-}
