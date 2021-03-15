@@ -5,7 +5,7 @@ email: manoj.bijoor@gmail.com
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: 
   pdf_document: 
-    latex_engine: xelatex
+    latex_engine: pdflatex
     number_sections: yes
     keep_tex: yes
     keep_md: yes
@@ -15,7 +15,11 @@ output:
   md_document:
     variant: markdown_github 
     # check https://bookdown.org/yihui/rmarkdown/markdown-document.html#markdown-variants
-  github_document: default
+  github_document:
+    toc: true
+    toc_depth: 5
+    pandoc_args: --webtex
+    # pandoc_args: ['--lua-filter', 'math-github.lua']
   html_document: 
     keep_md: true
     code_folding: hide
@@ -27,19 +31,23 @@ links-as-notes: true
 header-includes:
   \usepackage[utf8]{inputenc}
   \usepackage[english]{babel}
+  \usepackage{bookmark}
   \usepackage[]{hyperref}
   \hypersetup{
     backref,
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,      
-    urlcolor=cyan,
     pdftitle={"Movielens Harvard Capstone"},
     bookmarks=true,
-    pdfpagemode=FullScreen,
+    bookmarksnumbered=true,
+    bookmarksopen=true,
+    bookmarksopenlevel=3,
+    pdfpagemode=UseOutlines,
     pdfstartpage=1,
     hyperindex=true,
     pageanchor=true,
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan
     }
   \usepackage{amsmath}
   \usepackage{pdflscape}
@@ -52,6 +60,10 @@ header-includes:
   \usepackage{imakeidx}
   \makeindex[columns=3, title=Alphabetical Index, intoc]
 
+  # \usepackage{amssymb}
+  # \usepackage{mathtools}
+  # \usepackage{unicode-math}
+  # \usepackage{fontspec}
   # \usepackage{letltxmacro}%
   # \usepackage{float}
   # \usepackage{flafter}
@@ -95,6 +107,8 @@ knitr::opts_chunk$set(echo = TRUE,
 
 <!-- ------------------------------ -->
 
+\bookmark[dest=TitlePage]{Title Page}
+
 \pagenumbering{roman}     <!-- first page with Roman numbering -->
 
 \newpage                  <!-- new page -->
@@ -105,7 +119,9 @@ knitr::opts_chunk$set(echo = TRUE,
 
 \begin{center}
 
+\hypertarget{Abstract}{}
 \large{Abstract}
+\bookmark[dest=Abstract]{Abstract}
 
 \end{center}
 
@@ -121,7 +137,11 @@ knitr::opts_chunk$set(echo = TRUE,
 \setcounter{secnumdepth}{5}
 \setcounter{tocdepth}{5}
 
+\cleardoublepage <!-- ensure that the hypertarget is on the same page as the TOC heading -->
+\hypertarget{toc}{} <!-- set the hypertarget -->
+\bookmark[dest=toc,level=chapter]{\contentsname}
 \tableofcontents
+
 \clearpage
 
 <!-- ------------------------------ -->
@@ -152,17 +172,8 @@ knitr::opts_chunk$set(echo = TRUE,
 \newlistof{equations}{equ}{\listequationsname}
 \newcommand{\equations}[1]{%
 \refstepcounter{equations}
-\par\noindent\textbf{equations \theequations. #1}
-\addcontentsline{equ}{equations}{\thesection. \protect\numberline{\theequations}#1}\par}
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}#1}\par}
 \xpretocmd{\listofequations}{\addcontentsline{toc}{section}{\listequationsname}}{}{}
-
-<!-- \setlength{\cftequationsindent}{1.5em} -->
-<!-- \setlength{\cftequationsnumwidth}{2.3em} -->
-<!-- \renewcommand{\cftequtitlefont}{\normalfont\Large\bfseries} -->
-
-\makeatletter
-\let\l@equations\l@figure
-\makeatother
 
 \renewcommand{\listequationsname}{}
 
@@ -596,10 +607,12 @@ The plot shows some evidence of a time effect. If we define $d_{u,i}$ as the day
 
 <!-- $Y_{u,i}=\mu+b_{i}+b_{u}+f(d_{u,i})+\epsilon_{u,i}$, with f a smooth function of $d_{u,i}$ -->
 
+  <!-- Y_{u,i} = \mu + b_{i} + b_{u}  + f(d_{u,i})+ \epsilon_{u,i}\text{, with f a smooth function of }d_{u,i} -->
+
 \equations{Equation \ref{eq:EqTimeEffect}}
 \label{eq:EqTimeEffect}
 \begin{equation}
-Y_{u,i}=\mu+b_{i}+b_{u}+f(d_{u,i})+\epsilon_{u,i}\text{, with f a smooth function of }d_{u,i}
+Y_{u,i} = \mu + b_{i} + b_{u}  + f(d_{u,i})+ \epsilon_{u,i}\text{, with f a smooth function of }d_{u,i}
 \end{equation}
 
 **_Modify edx_**
@@ -656,6 +669,128 @@ The plot shows strong evidence of a genre effect.
 
 
 \newpage
+# Analysis - Model Building and Evaluation  
+
+## Split the edx data into separate training and test sets
+We will develop our algorithm using the edx set only.   
+We will split the edx data into separate training and test sets to design and test our algorithm, namely train_set and test_set.
+
+```{r, split_edx_1, echo=FALSE, eval=TRUE, warning=FALSE}
+# Sys.time()
+set.seed(1, sample.kind="Rounding")
+test_index <- createDataPartition(y = edx_md$rating, times = 1,
+                                  p = 0.2, list = FALSE)
+train_set <- edx_md[-test_index,]
+test_set <- edx_md[test_index,]
+
+# To make sure we don't include users and movies in the test set that do not 
+# appear in the training set, we remove these entries using the semi_join 
+# function:
+
+test_set <- test_set %>% 
+  semi_join(train_set, by = "movieId") %>%
+  semi_join(train_set, by = "userId")
+```
+
+### Loss function
+For a final test of our algorithm, we predict movie ratings in the test set as if they were unknown. [RMSE](https://en.wikipedia.org/wiki/Root-mean-square_deviation) (residual mean squared error/root mean square error), the typical error loss, will be used to evaluate how close our predictions are to the true values in the validation set.   
+We define ${y_{u,i}}$ as the rating for movie *i* by user *u* and denote our prediction with ${\hat{y}_{u,i}}$.   
+
+The RMSE is then defined as Equation \ref{eq:EqLossFunction}:   
+
+<!-- $$RMSE=\sqrt{\frac{1}{N}\sum_{u,i}(\hat{y}_{u,i}-y_{u,i})^{2}}$$ -->  
+
+\equations{Equation \ref{eq:EqLossFunction}}
+\label{eq:EqLossFunction}
+\begin{equation}
+  RMSE=\sqrt{\frac{1}{N}\sum_{u,i}(\hat{y}_{u,i}-y_{u,i})^{2}}
+\end{equation}
+
+with N being the number of user/movie combinations and the sum occurring over all these combinations.
+
+Remember that we can interpret the RMSE similarly to a standard deviation: it is the typical error we make when predicting a movie rating. If this number is larger than 1, it means our typical error is larger than one star, which is not good.
+
+Let's write a function that computes the RMSE for vectors of ratings and their corresponding predictors:  
+
+```{r, loss_fn, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE}
+RMSE <- function(true_ratings, predicted_ratings){
+  sqrt(mean((true_ratings - predicted_ratings)^2))
+}
+```
+```{r, split_edx_2, echo=FALSE, eval=TRUE}
+save(test_index, file = "rdas/test_index.rda")
+save(train_set, file = "rdas/train_set.rda")
+save(test_set, file = "rdas/test_set.rda")
+
+rm(edx_md, test_index)
+```
+
+\newpage
+## Model 1: A first naive "mean" model  
+
+Let's start by building the simplest possible recommendation system: we predict the same rating for all movies regardless of user. A model that assumes the same rating for all movies and users with all the differences explained by random variation would look like Equation \ref{eq:EqModel1}: 
+
+<!-- $$Y_{i,i}=\mu+\epsilon_{u,i}$$ -->
+
+\equations{Equation \ref{eq:EqModel1}}
+\label{eq:EqModel1}
+\begin{equation}
+  Y_{i,i}=\mu+\epsilon_{u,i}
+\end{equation}
+
+with $\epsilon_{u,i}$ independent errors sampled from the same distribution centered at 0 and $\mu$ the "true" rating for all movies. We know that the estimate that minimizes the RMSE is the least squares estimate of $\mu$ and, in this case, is the average of all ratings:
+
+```{r, nm_1, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE}
+(mu_hat <- mean(train_set$rating))
+```
+
+If we predict all unknown ratings with $\hat\mu$ we obtain the following RMSE:
+
+```{r, nm_2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE}
+(naive_rmse <- RMSE(test_set$rating, mu_hat))
+```
+
+Keep in mind that if we plug in any other number, we get a higher RMSE. For example:
+
+```{r, nm_3, echo=1:8,  eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE}
+predictions <- rep(2.5, nrow(test_set))
+RMSE(test_set$rating, predictions)
+
+predictions <- rep(3, nrow(test_set))
+RMSE(test_set$rating, predictions)
+
+predictions <- rep(4, nrow(test_set))
+RMSE(test_set$rating, predictions)
+
+rm(predictions)
+```
+
+From looking at the distribution of ratings, we can visualize that this is the standard deviation of that distribution. We get a RMSE of about 1. Our target is RMSE < 0.86490. So we can definitely do better!
+
+\newpage
+### Results Table
+
+As we go along, we will be comparing different approaches. Let's start by creating a results table with this naive approach:
+```{r, nm_4, echo=FALSE, eval=TRUE}
+rmse_results <- tibble(Index = "1", Method = "Just the average", RMSE = naive_rmse)
+
+save(rmse_results, file = "rdas/rmse_results.rda")
+
+rm(mu_hat,naive_rmse)
+```
+```{r, echo=FALSE, eval=TRUE}
+# rmse_results %>% knitr::kable()
+  kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results\\label{tbl:rmse_results}") %>%
+    kable_styling(latex_options=c("HOLD_position"), font_size=7)
+```
+
+
+```{r knitr_knit_exit}
+	knitr::knit_exit()
+```
+
+
+\newpage
 # Results
 
 ---  
@@ -679,10 +814,6 @@ Terms like generate\index{generate} and some\index{others} will also show up.
 
 \printindex
 
-
-```{r knitr_knit_exit}
-	knitr::knit_exit()
-```
 
 \newpage
 # List of tables{-}

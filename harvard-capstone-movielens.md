@@ -2,10 +2,10 @@
 title: "Movielens  \n Movie Recommendation System  \n A Harvard Capstone Project"
 author: "Manoj Bijoor"
 email: manoj.bijoor@gmail.com
-date: "March 14, 2021"
+date: "March 15, 2021"
 output: 
   pdf_document: 
-    latex_engine: xelatex
+    latex_engine: pdflatex
     number_sections: yes
     keep_tex: yes
     keep_md: yes
@@ -15,7 +15,11 @@ output:
   md_document:
     variant: markdown_github 
     # check https://bookdown.org/yihui/rmarkdown/markdown-document.html#markdown-variants
-  github_document: default
+  github_document:
+    toc: true
+    toc_depth: 5
+    pandoc_args: --webtex
+    # pandoc_args: ['--lua-filter', 'math-github.lua']
   html_document: 
     keep_md: true
     code_folding: hide
@@ -27,19 +31,23 @@ links-as-notes: true
 header-includes:
   \usepackage[utf8]{inputenc}
   \usepackage[english]{babel}
+  \usepackage{bookmark}
   \usepackage[]{hyperref}
   \hypersetup{
     backref,
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,      
-    urlcolor=cyan,
     pdftitle={"Movielens Harvard Capstone"},
     bookmarks=true,
-    pdfpagemode=FullScreen,
+    bookmarksnumbered=true,
+    bookmarksopen=true,
+    bookmarksopenlevel=3,
+    pdfpagemode=UseOutlines,
     pdfstartpage=1,
     hyperindex=true,
     pageanchor=true,
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan
     }
   \usepackage{amsmath}
   \usepackage{pdflscape}
@@ -52,6 +60,10 @@ header-includes:
   \usepackage{imakeidx}
   \makeindex[columns=3, title=Alphabetical Index, intoc]
 
+  # \usepackage{amssymb}
+  # \usepackage{mathtools}
+  # \usepackage{unicode-math}
+  # \usepackage{fontspec}
   # \usepackage{letltxmacro}%
   # \usepackage{float}
   # \usepackage{flafter}
@@ -68,6 +80,8 @@ header-includes:
 
 <!-- ------------------------------ -->
 
+\bookmark[dest=TitlePage]{Title Page}
+
 \pagenumbering{roman}     <!-- first page with Roman numbering -->
 
 \newpage                  <!-- new page -->
@@ -78,7 +92,9 @@ header-includes:
 
 \begin{center}
 
+\hypertarget{Abstract}{}
 \large{Abstract}
+\bookmark[dest=Abstract]{Abstract}
 
 \end{center}
 
@@ -94,7 +110,11 @@ header-includes:
 \setcounter{secnumdepth}{5}
 \setcounter{tocdepth}{5}
 
+\cleardoublepage <!-- ensure that the hypertarget is on the same page as the TOC heading -->
+\hypertarget{toc}{} <!-- set the hypertarget -->
+\bookmark[dest=toc,level=chapter]{\contentsname}
 \tableofcontents
+
 \clearpage
 
 <!-- ------------------------------ -->
@@ -125,17 +145,8 @@ header-includes:
 \newlistof{equations}{equ}{\listequationsname}
 \newcommand{\equations}[1]{%
 \refstepcounter{equations}
-\par\noindent\textbf{equations \theequations. #1}
-\addcontentsline{equ}{equations}{\thesection. \protect\numberline{\theequations}#1}\par}
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}#1}\par}
 \xpretocmd{\listofequations}{\addcontentsline{toc}{section}{\listequationsname}}{}{}
-
-<!-- \setlength{\cftequationsindent}{1.5em} -->
-<!-- \setlength{\cftequationsnumwidth}{2.3em} -->
-<!-- \renewcommand{\cftequtitlefont}{\normalfont\Large\bfseries} -->
-
-\makeatletter
-\let\l@equations\l@figure
-\makeatother
 
 \renewcommand{\listequationsname}{}
 
@@ -469,10 +480,12 @@ The plot shows some evidence of a time effect. If we define $d_{u,i}$ as the day
 
 <!-- $Y_{u,i}=\mu+b_{i}+b_{u}+f(d_{u,i})+\epsilon_{u,i}$, with f a smooth function of $d_{u,i}$ -->
 
+  <!-- Y_{u,i} = \mu + b_{i} + b_{u}  + f(d_{u,i})+ \epsilon_{u,i}\text{, with f a smooth function of }d_{u,i} -->
+
 \equations{Equation \ref{eq:EqTimeEffect}}
 \label{eq:EqTimeEffect}
 \begin{equation}
-Y_{u,i}=\mu+b_{i}+b_{u}+f(d_{u,i})+\epsilon_{u,i}\text{, with f a smooth function of }d_{u,i}
+Y_{u,i} = \mu + b_{i} + b_{u}  + f(d_{u,i})+ \epsilon_{u,i}\text{, with f a smooth function of }d_{u,i}
 \end{equation}
 
 **_Modify edx_**
@@ -534,317 +547,116 @@ The plot shows strong evidence of a genre effect.
 
 
 \newpage
-# Results
+# Analysis - Model Building and Evaluation  
 
----  
+## Split the edx data into separate training and test sets
+We will develop our algorithm using the edx set only.   
+We will split the edx data into separate training and test sets to design and test our algorithm, namely train_set and test_set.
 
-\newpage
-# Conclusion
 
----  
 
-\newpage
-# Appendix: All code for this report
+### Loss function
+For a final test of our algorithm, we predict movie ratings in the test set as if they were unknown. [RMSE](https://en.wikipedia.org/wiki/Root-mean-square_deviation) (residual mean squared error/root mean square error), the typical error loss, will be used to evaluate how close our predictions are to the true values in the validation set.   
+We define ${y_{u,i}}$ as the rating for movie *i* by user *u* and denote our prediction with ${\hat{y}_{u,i}}$.   
+
+The RMSE is then defined as Equation \ref{eq:EqLossFunction}:   
+
+<!-- $$RMSE=\sqrt{\frac{1}{N}\sum_{u,i}(\hat{y}_{u,i}-y_{u,i})^{2}}$$ -->  
+
+\equations{Equation \ref{eq:EqLossFunction}}
+\label{eq:EqLossFunction}
+\begin{equation}
+  RMSE=\sqrt{\frac{1}{N}\sum_{u,i}(\hat{y}_{u,i}-y_{u,i})^{2}}
+\end{equation}
+
+with N being the number of user/movie combinations and the sum occurring over all these combinations.
+
+Remember that we can interpret the RMSE similarly to a standard deviation: it is the typical error we make when predicting a movie rating. If this number is larger than 1, it means our typical error is larger than one star, which is not good.
+
+Let's write a function that computes the RMSE for vectors of ratings and their corresponding predictors:  
 
 
 ```r
-knitr::knit_hooks$set(time_it = local({
-  now <- NULL
-  function(before, options) {
-    if (before) {
-      # record the current time before each chunk
-      now <<- Sys.time()
-    } else {
-      # calculate the time difference after a chunk
-      res <- difftime(Sys.time(), now)
-      # return a character string to show the time
-      # paste("Time for this code chunk to run:", res)
-      paste("Time for the chunk", options$label, "to run:", res)
-    }
-  }
-}))
-
-# knitr::opts_chunk$set(fig.pos = "!H", out.extra = "")
-knitr::opts_chunk$set(echo = TRUE,
-                      fig.path = "figures/")
-
-# Beware, using the "time_it" hook messes up fig.cap, \label, \ref
-# knitr::opts_chunk$set(time_it = TRUE)
-#knitr::opts_chunk$set(eval = FALSE)
-  library(ggplot2)
-  library(kableExtra)
-
-################################
-# Create edx set, validation set
-################################
-
-# Note: this process could take a couple of minutes
-
-if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
-if(!require(caret)) install.packages("caret", repos = "http://cran.us.r-project.org")
-if(!require(data.table)) install.packages("data.table", repos = "http://cran.us.r-project.org")
-if(!require(lubridate)) install.packages("caret", repos = "http://cran.us.r-project.org")
-if(!require(groupdata2)) install.packages("data.table", repos = "http://cran.us.r-project.org")
-
-# https://www.tidyverse.org/blog/2020/05/dplyr-1-0-0-last-minute-additions/
-options(dplyr.summarise.inform = FALSE)
-
-# MovieLens 10M dataset:
-# https://grouplens.org/datasets/movielens/10m/
-# http://files.grouplens.org/datasets/movielens/ml-10m-README.html
-# http://files.grouplens.org/datasets/movielens/ml-10m.zip
-
-dl <- tempfile()
-download.file("http://files.grouplens.org/datasets/movielens/ml-10m.zip", dl)
-
-ratings <- fread(text = gsub("::", "\t", readLines(unzip(dl, "ml-10M100K/ratings.dat"))),
-                 col.names = c("userId", "movieId", "rating", "timestamp"))
-
-movies <- str_split_fixed(readLines(unzip(dl, "ml-10M100K/movies.dat")), "\\::", 3)
-colnames(movies) <- c("movieId", "title", "genres")
-movies <- as.data.frame(movies) %>% mutate(movieId = as.numeric(movieId),
-                                           title = as.character(title),
-                                           genres = as.character(genres))
-
-movielens <- left_join(ratings, movies, by = "movieId")
-
-# Validation set will be 10% of MovieLens data
-set.seed(1, sample.kind="Rounding")
-# if using R 3.5 or earlier, use `set.seed(1)` instead
-test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
-edx <- movielens[-test_index,]
-temp <- movielens[test_index,]
-
-# Make sure userId and movieId in validation set are also in edx set
-validation <- temp %>%
-  semi_join(edx, by = "movieId") %>%
-  semi_join(edx, by = "userId")
-
-# Add rows removed from validation set back into edx set
-removed <- anti_join(temp, validation)
-edx <- rbind(edx, removed)
-
-save(ratings, file = "rdas/ratings.rda")
-save(movies, file = "rdas/movies.rda")
-rm(dl, ratings, movies, test_index, temp, movielens, removed)
-
-save(edx, file = "rdas/edx.rda")
-save(validation, file = "rdas/validation.rda")
-  kable(edx[1:10,], "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="Movielens data\\label{tbl:movielens_data}") %>%
-    kable_styling(latex_options=c("HOLD_position"), font_size=7)
-unique_u_m_g <- edx %>% 
-  summarize(unique_users = n_distinct(userId),
-            unique_movies = n_distinct(movieId), 
-            unique_genres = n_distinct(genres))
-
-kable(unique_u_m_g, "latex", 
-      booktabs=TRUE, linesep="",
-      caption="Unique Users, Movies and Genres\\label{tbl:uniq_users_movies_genres}") %>%  kable_styling(latex_options=c("HOLD_position"))
-keep <- edx %>%
-  dplyr::count(movieId) %>%
-  top_n(4) %>%
-  pull(movieId)
-tab <- edx %>%
-  filter(userId %in% c(13:20)) %>% 
-  filter(movieId %in% keep) %>% 
-  select(userId, title, rating) %>% 
-  spread(title, rating)
-  
-kable(tab, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="Matrix of seven users and four movies\\label{tbl:matrix_seven_users_four_movies}") %>%
-    kable_styling(latex_options=c("HOLD_position"), font_size=8)
-users <- sample(unique(edx$userId), 100)
-rafalib::mypar()
-edx %>% filter(userId %in% users) %>% 
-  select(userId, movieId, rating) %>%
-  mutate(rating = 1) %>%
-  spread(movieId, rating) %>% select(sample(ncol(.), 100)) %>% 
-  as.matrix() %>% t(.) %>%
-  image(1:100, 1:100,. , xlab="Movies", ylab="Users")
-abline(h=0:100+0.5, v=0:100+0.5, col = "grey")
-edx %>% 
-  dplyr::count(movieId) %>% 
-  ggplot(aes(n)) + 
-  geom_histogram(bins = 30, color = "black") + 
-  scale_x_log10() +  # try with and without this line
-  ggtitle("Movies")
-edx %>%
-  dplyr::count(userId) %>% 
-  ggplot(aes(n)) + 
-  geom_histogram(bins = 30, color = "black") + 
-  scale_x_log10() + # try with and without this line
-  ggtitle("Users")
-
-rm(tab,keep,unique_u_m_g,users)
-edx_dt <- edx %>% 
-  mutate(rating_date = as_datetime(timestamp)) %>% 
-  select(-timestamp)
-rm(edx)
-
-kable(edx_dt[1:5,], "latex", escape=TRUE, booktabs=TRUE, linesep="", caption="Movielens edx data with rating date-time\\label{tbl:movielens_edx_data_rating_date}") %>%
-    kable_styling(latex_options=c("HOLD_position"), font_size=8)
-td <- edx_dt$title
-movie_dt <- str_extract(td, "\\([0-9]{4}\\)$") %>%
-  str_extract("[0-9]{4}")
-title_o <- str_replace(td, "\\([0-9]{4}\\)$", "")
-edx_md <- edx_dt %>% mutate(title=title_o, movie_dt=as.numeric(movie_dt))
-rm(td,movie_dt,title_o,edx_dt)
-save(edx_md, file = "rdas/edx_md.rda")
-
-kable(edx_md[1:5,], "latex", escape=TRUE, booktabs=TRUE, linesep="", caption="Movielens edx data with movie release date\\label{tbl:movielens_edx_movie_release_date}") %>%
-    kable_styling(latex_options=c("HOLD_position"), font_size=8)
-validation_dt <- validation %>% 
-  mutate(rating_date = as_datetime(timestamp)) %>% 
-  select(-timestamp)
-rm(validation)
-
-kable(validation_dt[1:5,], "latex", escape=TRUE, booktabs=TRUE, linesep="", caption="Movielens validation data with rating date-time\\label{tbl:movielens_val_data_rating_date}") %>%
-    kable_styling(latex_options=c("HOLD_position"), font_size=8)
-td <- validation_dt$title
-movie_dt <- str_extract(td, "\\([0-9]{4}\\)$") %>% 
-  str_extract("[0-9]{4}")
-title_o <- str_replace(td, "\\([0-9]{4}\\)$", "")
-validation_md <- validation_dt %>% mutate(title=title_o, movie_dt=as.numeric(movie_dt))
-rm(td,movie_dt,title_o,validation_dt)
-save(validation_md, file = "rdas/validation_md.rda")
-
-kable(validation_md[1:5,], "latex", escape=TRUE, booktabs=TRUE, linesep="", caption="Movielens validation data with movie release date\\label{tbl:movielens_val_movie_release_date}") %>%
-    kable_styling(latex_options=c("HOLD_position"), font_size=8)
-
-# rm(validation_md)
-ratings_m_y <- edx_md %>%
-  group_by(movieId) %>%
-  summarize(n = n_distinct(userId), year = as.character(first(movie_dt))) %>% 
-  mutate(sqrt_n=sqrt(n)) %>% 
-  group_by(year) %>% 
-  mutate(r_median=median(sqrt_n)) %>% select(year,r_median) %>% 
-  unique() %>% arrange(desc(r_median))
-
-# min(edx_md$movie_dt)
-# # [1] 1915
-# max(edx_md$movie_dt)
-# # [1] 2008
-
-# View(ratings_m_y)
-ggplot(data=ratings_m_y, aes(x=year, y=r_median) ) + 
-  geom_point( size=1, colour="#000080" ) + 
-  theme_light(base_size=8) + 
-  # labs(title="", x="\nyear", y="r_median\n") + 
-  scale_x_discrete(breaks=seq(min(edx_md$movie_dt),max(edx_md$movie_dt),by=2)) + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
-spline_int <- as.data.frame(spline(ratings_m_y$year, ratings_m_y$r_median))
-
-ggplot(data=ratings_m_y, aes(x=year, y=r_median) ) +
-  geom_point(data = spline_int, aes(x = x, y = y)) +
-  geom_line(data = spline_int, aes(x = x, y = y)) +
-  theme_light(base_size=8) +
-  # scale_x_discrete(breaks=seq(min(edx_md$movie_dt),max(edx_md$movie_dt),by=2)) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
-rm(ratings_m_y)
-
-res2 <- edx_md %>%
-  filter(movie_dt >= 1991) %>%
-  group_by(movieId) %>%
-  # summarize(avg_rating = mean(rating), n = n(), title=title[1], years=2018 - min(movie_dt)) %>% 
-  summarize(avg_rating = mean(rating), n = n(), title=title[1], years=2018 - first(movie_dt)) %>%
-  mutate(n_year = n / years) %>%
-  top_n(25, n_year) %>%
-  arrange(desc(n_year))
-
-# qplot(res2$years,res2$n)
-ggplot(res2,aes(years,n)) + 
-  geom_line() + 
-  geom_smooth() + 
-  geom_vline(xintercept = 25) + # 1993
-  geom_vline(xintercept = 27) # 1991
-rm(res2)
-res2_1993_plus <- edx_md %>%
-  filter(movie_dt >= 1993) %>%
-  group_by(movieId) %>%
-  # summarize(avg_rating = mean(rating), n = n(), title=title[1], years=2018 - min(movie_dt)) %>% 
-  summarize(avg_rating = mean(rating), n = n(), title=title[1], years=2018 - first(movie_dt)) %>% 
-  mutate(n_year = n / years) %>%
-  top_n(25, n_year) %>%
-  arrange(desc(n_year))
-# qplot(res2_1993_plus$years,res2_1993_plus$n)
-ggplot(res2_1993_plus,aes(years,n)) + 
-  geom_line() + 
-  geom_smooth() + 
-  geom_vline(xintercept = 25) # 1993
-
-rm(res2_1993_plus)
-res3 <- edx_md %>%
-  filter(movie_dt >= 1993) %>%
-  group_by(movieId) %>%
-  summarize(avg_rating = mean(rating), n = n(), title=title[1], years=2018 - min(movie_dt)) %>%
-  mutate(n_year = n / years)
-res3 %>% 
-  group_by(round(n_year)) %>% 
-  ggplot(aes(n_year,avg_rating)) + geom_point() + geom_smooth()
-
-rm(res3)
-res3_b <- edx_md %>%
-  filter(movie_dt < 1993) %>%
-  group_by(movieId) %>%
-  summarize(avg_rating = mean(rating), n = n(), title=title[1], years=2018 - min(movie_dt)) %>%
-  mutate(n_year = n / years)
-res3_b %>% 
-  group_by(round(n_year)) %>% 
-  ggplot(aes(n_year,avg_rating)) + geom_point() + geom_smooth()
-
-rm(res3_b)
-edx_md %>% mutate(date = round_date(rating_date, unit = "week")) %>%
-  group_by(date) %>%
-  summarize(avg_rating = mean(rating)) %>%
-  ggplot(aes(date, avg_rating)) +
-  geom_point() +
-  geom_smooth()
-edx_md <- edx_md %>% mutate(date = round_date(rating_date, unit = "week")) %>%
-  group_by(date) %>%
-  mutate(avg_rating = mean(rating)) %>% ungroup()
-save(edx_md, file = "rdas/edx_md.rda")
-
-kable(edx_md[1:5,], "latex", escape=TRUE, booktabs=TRUE, linesep="", caption="Movielens edx data with average rating due to rating time effect\\label{tbl:movielens_edx_avg_rating_time_effect}") %>%
-    kable_styling(latex_options=c("HOLD_position"), font_size=6)
-validation_md <- validation_md %>% mutate(date = round_date(rating_date, unit = "week")) %>%
-  group_by(date) %>%
-  mutate(avg_rating = mean(rating)) %>% ungroup()
-save(validation_md, file = "rdas/validation_md.rda")
-
-kable(validation_md[1:5,], "latex", escape=TRUE, booktabs=TRUE, linesep="", caption="Movielens validation data with average rating due to rating time effect\\label{tbl:movielens_validation_avg_rating_time_effect}") %>%
-    kable_styling(latex_options=c("HOLD_position"), font_size=6)
-
-rm(validation_md)
-edx_md %>% group_by(genres) %>%
-  summarize(n = n(), avg = mean(rating), se = sd(rating)/sqrt(n())) %>%
-  filter(n >= 1000) %>% 
-  mutate(genres = reorder(genres, avg)) %>%
-  ggplot(aes(x = genres, y = avg, ymin = avg - 2*se, ymax = avg + 2*se)) + 
-  geom_point() +
-  geom_errorbar() + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-	knitr::knit_exit()
-options(tinytex.verbose = TRUE)
-fit <- lm(mpg ~ cyl + disp, mtcars)
-# show the theoretical model
-equatiomatic::extract_eq(fit)
-options(tinytex.verbose = FALSE)
+RMSE <- function(true_ratings, predicted_ratings) {
+    sqrt(mean((true_ratings - predicted_ratings)^2))
+}
 ```
 
----  
 
 \newpage
+## Model 1: A first naive "mean" model  
 
-Terms like generate\index{generate} and some\index{others} will also show up.
+Let's start by building the simplest possible recommendation system: we predict the same rating for all movies regardless of user. A model that assumes the same rating for all movies and users with all the differences explained by random variation would look like Equation \ref{eq:EqModel1}: 
 
-\printindex
+<!-- $$Y_{i,i}=\mu+\epsilon_{u,i}$$ -->
+
+\equations{Equation \ref{eq:EqModel1}}
+\label{eq:EqModel1}
+\begin{equation}
+  Y_{i,i}=\mu+\epsilon_{u,i}
+\end{equation}
+
+with $\epsilon_{u,i}$ independent errors sampled from the same distribution centered at 0 and $\mu$ the "true" rating for all movies. We know that the estimate that minimizes the RMSE is the least squares estimate of $\mu$ and, in this case, is the average of all ratings:
+
+
+```r
+(mu_hat <- mean(train_set$rating))
+[1] 3.512482
+```
+
+If we predict all unknown ratings with $\hat\mu$ we obtain the following RMSE:
+
+
+```r
+(naive_rmse <- RMSE(test_set$rating, mu_hat))
+[1] 1.059904
+```
+
+Keep in mind that if we plug in any other number, we get a higher RMSE. For example:
+
+
+```r
+predictions <- rep(2.5, nrow(test_set))
+RMSE(test_set$rating, predictions)
+[1] 1.465736
+
+predictions <- rep(3, nrow(test_set))
+RMSE(test_set$rating, predictions)
+[1] 1.177271
+
+predictions <- rep(4, nrow(test_set))
+RMSE(test_set$rating, predictions)
+[1] 1.166678
+```
+
+From looking at the distribution of ratings, we can visualize that this is the standard deviation of that distribution. We get a RMSE of about 1. Our target is RMSE < 0.86490. So we can definitely do better!
+
+\newpage
+### Results Table
+
+As we go along, we will be comparing different approaches. Let's start by creating a results table with this naive approach:
+
+\begin{table}[H]
+
+\caption{\label{tab:unnamed-chunk-2}RMSE Results\label{tbl:rmse_results}}
+\centering
+\fontsize{7}{9}\selectfont
+\begin{tabular}[t]{llr}
+\toprule
+Index & Method & RMSE\\
+\midrule
+1 & Just the average & 1.059904\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 
 
 ```r
 	knitr::knit_exit()
 ```
+
+
 
 
 
