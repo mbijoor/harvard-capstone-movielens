@@ -243,7 +243,8 @@ final algorithm, I predict movie ratings in the validation set (the
 final hold-out test set) as if they were unknown.
 \href{https://en.wikipedia.org/wiki/Root-mean-square_deviation}{RMSE}
 will be used to evaluate how close my predictions are to the true values
-in the validation set (the final hold-out test set).
+in the validation set (the final hold-out test set). My target is RMSE
+\textless{} 0.86490.
 
 \hypertarget{important-data-sets-usage}{%
 \subsubsection{Important: Data sets
@@ -279,15 +280,25 @@ files:}\label{my-submission-for-this-project-is-three-files}}
 The report documents the analysis and presents the findings, along with
 supporting statistics and figures. The report assumes that the reader is
 not familiar with the project or the data. The report includes the RMSE
-generated and the following sections:\\
-1. an introduction/overview/executive summary section that describes the
-dataset and summarizes the goal of the project and key steps that were
-performed 2. a methods/analysis section that explains the process and
-techniques used, including data cleaning, data exploration and
-visualization, insights gained, and my modeling approach 3. a results
-section that presents the modeling results and discusses the model
-performance 4. a conclusion section that gives a brief summary of the
-report, its limitations and future work
+generated and the following sections:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  an introduction/overview/executive summary section that describes the
+  dataset and summarizes the goal of the project and key steps that were
+  performed
+\item
+  a methods/analysis section that explains the process and techniques
+  used, including data cleaning, data exploration and visualization,
+  insights gained, and my modeling approach
+\item
+  a results section that presents the modeling results and discusses the
+  model performance
+\item
+  a conclusion section that gives a brief summary of the report, its
+  limitations and future work
+\end{enumerate}
 
 \newpage
 
@@ -579,6 +590,8 @@ the square root transformation on the counts using Table
 \ref{tbl:movielens_edx_movie_release_date} , we get see Figure
 \ref{fig:ratings_movie_release_date_all_dates} :
 
+\textbf{TODO: Align images}
+
 \begin{figure}[h!]
 
 {\centering \subfloat[All data points only\label{fig:md_1-1}]{\includegraphics[width=0.7\linewidth]{figures/md_1-1} }\newline\subfloat[Smooth line through all data points\label{fig:md_1-2}]{\includegraphics[width=0.7\linewidth]{figures/md_1-2} }
@@ -713,7 +726,7 @@ appropriate:
 
 %
 \refstepcounter{equations}
-\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Equation \ref{eq:EqTimeEffect}}\par
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Movie Rating Date-Time effect Equation \ref{eq:EqTimeEffect}}\par
 
 \label{eq:EqTimeEffect} \begin{equation}
 Y_{u,i} = \mu + b_{i} + b_{u}  + f(d_{u,i})+ \epsilon_{u,i}\text{, with f a smooth function of }d_{u,i}
@@ -820,7 +833,7 @@ The RMSE is then defined as Equation \ref{eq:EqLossFunction}:
 
 %
 \refstepcounter{equations}
-\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Equation \ref{eq:EqLossFunction}}\par
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Loss function RMSE Equation \ref{eq:EqLossFunction}}\par
 
 \label{eq:EqLossFunction} \begin{equation}
   RMSE=\sqrt{\frac{1}{N}\sum_{u,i}(\hat{y}_{u,i}-y_{u,i})^{2}}
@@ -842,6 +855,7 @@ their corresponding predictors:
 \NormalTok{RMSE }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(true\_ratings, predicted\_ratings) \{}
     \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((true\_ratings }\SpecialCharTok{{-}}\NormalTok{ predicted\_ratings)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
 \NormalTok{\}}
+\FunctionTok{save}\NormalTok{(test\_index, }\AttributeTok{file =} \StringTok{"rdas/test\_index.rda"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -859,7 +873,7 @@ differences explained by random variation would look like Equation
 
 %
 \refstepcounter{equations}
-\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Equation \ref{eq:EqModel1}}\par
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Model 1: A naive "mean" model Equation \ref{eq:EqModel1}}\par
 
 \label{eq:EqModel1} \begin{equation}
   Y_{i,i} = \mu + \epsilon_{u,i}
@@ -923,7 +937,7 @@ by creating a results table with this naive approach to get Table
 
 \begin{table}[H]
 
-\caption{\label{tab:unnamed-chunk-2}RMSE Results Model 1\label{tbl:rmse_results_model_1}}
+\caption{\label{tab:m_1_4}RMSE Results Model 1\label{tbl:rmse_results_model_1}}
 \centering
 \fontsize{7}{9}\selectfont
 \begin{tabular}[t]{llr}
@@ -948,10 +962,10 @@ adding the term \(b_{i}\) to represent average ranking for movie
 
 %
 \refstepcounter{equations}
-\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Equation \ref{eq:EqModel2-1}}\par
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Model 2: Movie effects linear model Equation \ref{eq:EqModel2-1}}\par
 
 \label{eq:EqModel2-1} \begin{equation}
-  Y_{i,i} = \mu + b_{i} + \epsilon_{u,i}
+  Y_{u,i} = \mu + b_{i} + \epsilon_{u,i}
 \end{equation}
 
 Statistics textbooks refer to the \emph{b}s as effects or
@@ -962,10 +976,10 @@ following way to get Equation \ref{eq:EqModel2-2}:
 
 %
 \refstepcounter{equations}
-\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Equation \ref{eq:EqModel2-2}}\par
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}LSE linear function to fit Movie effects linear model Equation \ref{eq:EqModel2-2}}\par
 
 \label{eq:EqModel2-2} \begin{equation}
-  fit \leftarrow lm(rating \; \tilde \; as.factor(userId), \: data = train\_{}set)
+  fit \leftarrow lm(rating \; \sim \; as.factor(userId), \: data = train\_{}set)
 \end{equation}
 
 Because there are thousands of \(b_{i}\) as each movie gets one, the
@@ -980,7 +994,8 @@ the hat notation in the code to represent estimates going forward):
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{mu }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(train\_set}\SpecialCharTok{$}\NormalTok{rating)}
-\NormalTok{movie\_avgs }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{group\_by}\NormalTok{(movieId) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_i =} \FunctionTok{mean}\NormalTok{(rating }\SpecialCharTok{{-}}\NormalTok{ mu))}
+\NormalTok{movie\_avgs }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{group\_by}\NormalTok{(movieId) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_i =} \FunctionTok{mean}\NormalTok{(rating }\SpecialCharTok{{-}} 
+\NormalTok{    mu))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1000,9 +1015,8 @@ star rating. Let's see how much our prediction improves once we use
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{predicted\_ratings\_model\_2 }\OtherTok{\textless{}{-}}\NormalTok{ mu }\SpecialCharTok{+}\NormalTok{ test\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }\AttributeTok{by =} \StringTok{"movieId"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
-\NormalTok{    .}\SpecialCharTok{$}\NormalTok{b\_i}
-
+\NormalTok{predicted\_ratings\_model\_2 }\OtherTok{\textless{}{-}}\NormalTok{ mu }\SpecialCharTok{+}\NormalTok{ test\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }
+    \AttributeTok{by =} \StringTok{"movieId"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}\NormalTok{ .}\SpecialCharTok{$}\NormalTok{b\_i}
 \NormalTok{(model\_2\_rmse }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(predicted\_ratings\_model\_2, test\_set}\SpecialCharTok{$}\NormalTok{rating))}
 \NormalTok{[}\DecValTok{1}\NormalTok{] }\FloatTok{0.9437429}
 \end{Highlighting}
@@ -1027,6 +1041,115 @@ Index & Method & RMSE\\
 \midrule
 1 & Just the average & 1.0599043\\
 2 & Movie Effect Model & 0.9437429\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+
+\hypertarget{model-3-user-effects}{%
+\subsection{Model 3: User effects}\label{model-3-user-effects}}
+
+Let's compute \emph{b\_u} the average rating for user \emph{u} for those
+that have rated over 100 movies:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{train\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{group\_by}\NormalTok{(userId) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_u =} \FunctionTok{mean}\NormalTok{(rating)) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{filter}\NormalTok{(}\FunctionTok{n}\NormalTok{() }\SpecialCharTok{\textgreater{}=} \DecValTok{100}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(b\_u)) }\SpecialCharTok{+} \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{30}\NormalTok{, }
+    \AttributeTok{color =} \StringTok{"black"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{figures/ue_1-1.pdf}
+
+\newpage
+
+Let's compute \emph{b\_u} the average rating for user \emph{u} for those
+that have rated any movies:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{train\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{group\_by}\NormalTok{(userId) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_u =} \FunctionTok{mean}\NormalTok{(rating)) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(b\_u)) }\SpecialCharTok{+} \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{30}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{figures/ue_2-1.pdf}
+
+Notice that there is substantial variability across users as well: some
+users are very cranky and others love every movie. This implies that a
+further improvement to our model may be as shown in Equation
+\ref{eq:EqModel3-1}:
+
+%
+\refstepcounter{equations}
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Model 3: Movie + User effects linear model Equation \ref{eq:EqModel3-1}}\par
+
+\label{eq:EqModel3-1} \begin{equation}
+  Y_{u,i} = \mu + b_{i} + b_{u} + \epsilon_{u,i}
+\end{equation}
+
+where \(b_{u}\) is a user-specific effect. Now if a cranky user
+(negative \(b_{u}\)) rates a great movie (positive \(b_{i}\)), the
+effects counter each other and we may be able to correctly predict that
+this user gave this great movie a 3 rather than a 5.
+
+To fit this model, we could again use \texttt{lm()} as shown in Equation
+\ref{eq:EqModel3-2}:
+
+%
+\refstepcounter{equations}
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}LSE linear function to fit Movie + User effects linear model Equation \ref{eq:EqModel3-2}}\par
+
+\label{eq:EqModel3-2} \begin{equation}
+  fit \leftarrow lm(rating \; \sim \; as.factor(movieId) + as.factor(userId), \: data = train\_{}set)
+\end{equation}
+
+but, for the reasons described earlier, we won't. Instead, we will
+compute an approximation by computing \(\hat{\mu}\) and \(\hat{b_{i}}\)
+and estimating \(\hat{b_{u}}\) as the average of
+\(y_{u,i}-\hat{\mu}-\hat{b_{i}}\):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{user\_avgs }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }\AttributeTok{by =} \StringTok{"movieId"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{group\_by}\NormalTok{(userId) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_u =} \FunctionTok{mean}\NormalTok{(rating }\SpecialCharTok{{-}}\NormalTok{ mu }\SpecialCharTok{{-}}\NormalTok{ b\_i))}
+\end{Highlighting}
+\end{Shaded}
+
+We can now construct predictors and see how much the RMSE improves:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{predicted\_ratings\_model\_3 }\OtherTok{\textless{}{-}}\NormalTok{ test\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }
+    \AttributeTok{by =} \StringTok{"movieId"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{left\_join}\NormalTok{(user\_avgs, }\AttributeTok{by =} \StringTok{"userId"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{pred =}\NormalTok{ mu }\SpecialCharTok{+}\NormalTok{ b\_i }\SpecialCharTok{+}\NormalTok{ b\_u) }\SpecialCharTok{\%\textgreater{}\%}\NormalTok{ .}\SpecialCharTok{$}\NormalTok{pred}
+\NormalTok{(model\_3\_rmse }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(predicted\_ratings\_model\_3, test\_set}\SpecialCharTok{$}\NormalTok{rating))}
+\NormalTok{[}\DecValTok{1}\NormalTok{] }\FloatTok{0.865932}
+\end{Highlighting}
+\end{Shaded}
+
+\newpage
+
+\hypertarget{results-table-model-1-3}{%
+\subsubsection{Results Table Model 1-3}\label{results-table-model-1-3}}
+
+Let's add the user effects model to our results table to get Table
+\ref{tbl:rmse_results_model_1-3}
+
+\begin{table}[H]
+
+\caption{\label{tab:ue_5}RMSE Results Model 1-3\label{tbl:rmse_results_model_1-3}}
+\centering
+\fontsize{7}{9}\selectfont
+\begin{tabular}[t]{llr}
+\toprule
+Index & Method & RMSE\\
+\midrule
+1 & Just the average & 1.0599043\\
+2 & Movie Effect Model & 0.9437429\\
+3 & Movie + User Effects Model & 0.8659320\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1346,6 +1469,7 @@ report}\label{appendix-all-code-for-this-report}}
 \NormalTok{RMSE }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(true\_ratings, predicted\_ratings)\{}
   \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((true\_ratings }\SpecialCharTok{{-}}\NormalTok{ predicted\_ratings)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
 \NormalTok{\}}
+
 \FunctionTok{save}\NormalTok{(test\_index, }\AttributeTok{file =} \StringTok{"rdas/test\_index.rda"}\NormalTok{)}
 \FunctionTok{save}\NormalTok{(train\_set, }\AttributeTok{file =} \StringTok{"rdas/train\_set.rda"}\NormalTok{)}
 \FunctionTok{save}\NormalTok{(test\_set, }\AttributeTok{file =} \StringTok{"rdas/test\_set.rda"}\NormalTok{)}
@@ -1369,10 +1493,12 @@ report}\label{appendix-all-code-for-this-report}}
 \FunctionTok{save}\NormalTok{(model\_1\_rmse, }\AttributeTok{file =} \StringTok{"rdas/model\_1\_rmse.rda"}\NormalTok{)}
 
 \FunctionTok{rm}\NormalTok{(mu\_hat,model\_1\_rmse)}
+
 \CommentTok{\# rmse\_results \%\textgreater{}\% knitr::kable()}
   \FunctionTok{kable}\NormalTok{(rmse\_results, }\StringTok{"latex"}\NormalTok{, }\AttributeTok{escape=}\ConstantTok{FALSE}\NormalTok{, }\AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{, }\AttributeTok{linesep=}\StringTok{""}\NormalTok{, }\AttributeTok{caption=}\StringTok{"RMSE Results Model 1}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{label\{tbl:rmse\_results\_model\_1\}"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
     \FunctionTok{kable\_styling}\NormalTok{(}\AttributeTok{latex\_options=}\FunctionTok{c}\NormalTok{(}\StringTok{"HOLD\_position"}\NormalTok{), }\AttributeTok{font\_size=}\DecValTok{7}\NormalTok{)}
-\NormalTok{mu }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(train\_set}\SpecialCharTok{$}\NormalTok{rating) }
+\NormalTok{mu }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(train\_set}\SpecialCharTok{$}\NormalTok{rating)}
+
 \NormalTok{movie\_avgs }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%} 
   \FunctionTok{group\_by}\NormalTok{(movieId) }\SpecialCharTok{\%\textgreater{}\%} 
   \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_i =} \FunctionTok{mean}\NormalTok{(rating }\SpecialCharTok{{-}}\NormalTok{ mu))}
@@ -1401,6 +1527,41 @@ report}\label{appendix-all-code-for-this-report}}
 \FunctionTok{rm}\NormalTok{(model\_2\_rmse,predicted\_ratings\_model\_2)}
 \CommentTok{\# rmse\_results \%\textgreater{}\% knitr::kable()}
   \FunctionTok{kable}\NormalTok{(rmse\_results, }\StringTok{"latex"}\NormalTok{, }\AttributeTok{escape=}\ConstantTok{FALSE}\NormalTok{, }\AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{, }\AttributeTok{linesep=}\StringTok{""}\NormalTok{, }\AttributeTok{caption=}\StringTok{"RMSE Results Model 1{-}2}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{label\{tbl:rmse\_results\_model\_1{-}2\}"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{kable\_styling}\NormalTok{(}\AttributeTok{latex\_options=}\FunctionTok{c}\NormalTok{(}\StringTok{"HOLD\_position"}\NormalTok{), }\AttributeTok{font\_size=}\DecValTok{7}\NormalTok{)}
+\NormalTok{train\_set }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{group\_by}\NormalTok{(userId) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_u =} \FunctionTok{mean}\NormalTok{(rating)) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(}\FunctionTok{n}\NormalTok{()}\SpecialCharTok{\textgreater{}=}\DecValTok{100}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(b\_u)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{30}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{)}
+\NormalTok{train\_set }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{group\_by}\NormalTok{(userId) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_u =} \FunctionTok{mean}\NormalTok{(rating)) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(b\_u)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{30}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{)}
+\NormalTok{user\_avgs }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}movieId\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(userId) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_u =} \FunctionTok{mean}\NormalTok{(rating }\SpecialCharTok{{-}}\NormalTok{ mu }\SpecialCharTok{{-}}\NormalTok{ b\_i))}
+
+\FunctionTok{save}\NormalTok{(user\_avgs, }\AttributeTok{file =} \StringTok{"rdas/user\_avgs.rda"}\NormalTok{)}
+\NormalTok{predicted\_ratings\_model\_3 }\OtherTok{\textless{}{-}}\NormalTok{ test\_set }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}movieId\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{left\_join}\NormalTok{(user\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}userId\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{pred =}\NormalTok{ mu }\SpecialCharTok{+}\NormalTok{ b\_i }\SpecialCharTok{+}\NormalTok{ b\_u) }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  .}\SpecialCharTok{$}\NormalTok{pred}
+
+\NormalTok{(model\_3\_rmse }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(predicted\_ratings\_model\_3, test\_set}\SpecialCharTok{$}\NormalTok{rating))}
+
+\FunctionTok{save}\NormalTok{(predicted\_ratings\_model\_3, }\AttributeTok{file =} \StringTok{"rdas/predicted\_ratings\_model\_3.rda"}\NormalTok{)}
+\FunctionTok{save}\NormalTok{(model\_3\_rmse, }\AttributeTok{file =} \StringTok{"rdas/model\_3\_rmse.rda"}\NormalTok{)}
+\NormalTok{rmse\_results }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(rmse\_results,}
+                          \FunctionTok{tibble}\NormalTok{(}\AttributeTok{Index =} \StringTok{"3"}\NormalTok{, }\AttributeTok{Method=}\StringTok{"Movie + User Effects Model"}\NormalTok{,  }
+                                 \AttributeTok{RMSE =}\NormalTok{ model\_3\_rmse))}
+\FunctionTok{save}\NormalTok{(rmse\_results, }\AttributeTok{file =} \StringTok{"rdas/rmse\_results.rda"}\NormalTok{)}
+\FunctionTok{rm}\NormalTok{(model\_3\_rmse, predicted\_ratings\_model\_3)}
+\CommentTok{\# rmse\_results \%\textgreater{}\% knitr::kable()}
+  \FunctionTok{kable}\NormalTok{(rmse\_results, }\StringTok{"latex"}\NormalTok{, }\AttributeTok{escape=}\ConstantTok{FALSE}\NormalTok{, }\AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{, }\AttributeTok{linesep=}\StringTok{""}\NormalTok{, }\AttributeTok{caption=}\StringTok{"RMSE Results Model 1{-}3}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{label\{tbl:rmse\_results\_model\_1{-}3\}"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
     \FunctionTok{kable\_styling}\NormalTok{(}\AttributeTok{latex\_options=}\FunctionTok{c}\NormalTok{(}\StringTok{"HOLD\_position"}\NormalTok{), }\AttributeTok{font\_size=}\DecValTok{7}\NormalTok{)}
 \NormalTok{    knitr}\SpecialCharTok{::}\FunctionTok{knit\_exit}\NormalTok{()}
 \FunctionTok{options}\NormalTok{(}\AttributeTok{tinytex.verbose =} \ConstantTok{TRUE}\NormalTok{)}

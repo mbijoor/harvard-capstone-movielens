@@ -177,7 +177,7 @@ I will use the [10M version of the MovieLens dataset](https://grouplens.org/data
 
 
 ## Create Train and Final Hold-out Test Sets  
-I will develop my algorithm using the edx set. For a final test of my final algorithm, I predict movie ratings in the validation set (the final hold-out test set) as if they were unknown. [RMSE](https://en.wikipedia.org/wiki/Root-mean-square_deviation) will be used to evaluate how close my predictions are to the true values in the validation set (the final hold-out test set).  
+I will develop my algorithm using the edx set. For a final test of my final algorithm, I predict movie ratings in the validation set (the final hold-out test set) as if they were unknown. [RMSE](https://en.wikipedia.org/wiki/Root-mean-square_deviation) will be used to evaluate how close my predictions are to the true values in the validation set (the final hold-out test set). My target is RMSE < 0.86490. 
 
 
 ### Important: Data sets usage  
@@ -190,10 +190,14 @@ The validation data (the final hold-out test set) will NOT be used for training,
 2. My report in PDF format (knit from my Rmd file)
 3. A script in R format that generates my predicted movie ratings and RMSE score (contains all code and comments for my project)  
   
-The report documents the analysis and presents the findings, along with supporting statistics and figures. The report assumes that the reader is not familiar with the project or the data. The report includes the RMSE generated and the following sections:  
+The report documents the analysis and presents the findings, along with supporting statistics and figures. The report assumes that the reader is not familiar with the project or the data. The report includes the RMSE generated and the following sections:
+
 1. an introduction/overview/executive summary section that describes the dataset and summarizes the goal of the project and key steps that were performed
+
 2. a methods/analysis section that explains the process and techniques used, including data cleaning, data exploration and visualization, insights gained, and my modeling approach
+
 3. a results section that presents the modeling results and discusses the model performance
+
 4. a conclusion section that gives a brief summary of the report, its limitations and future work  
 
 
@@ -403,6 +407,7 @@ userId & movieId & rating & title & genres & rating\_date & movie\_dt\\
 
 Computing the number of ratings for each movie and then plotting it against the year the movie came out, that is the release date and using the square root transformation on the counts using Table \ref{tbl:movielens_edx_movie_release_date} , we get see Figure \ref{fig:ratings_movie_release_date_all_dates} :
 
+**TODO: Align images**
 <!-- # ```{r, md_1, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.show="hold", out.width="50%", fig.cap="Ratings Movie Release Date - All dates\\label{fig:ratings_movie_release_date_all_dates}"} -->
 
 \begin{figure}[h!]
@@ -482,7 +487,7 @@ The plot shows some evidence of a time effect. If we define $d_{u,i}$ as the day
 
   <!-- Y_{u,i} = \mu + b_{i} + b_{u}  + f(d_{u,i})+ \epsilon_{u,i}\text{, with f a smooth function of }d_{u,i} -->
 
-\equations{Equation \ref{eq:EqTimeEffect}}
+\equations{Movie Rating Date-Time effect Equation \ref{eq:EqTimeEffect}}
 \label{eq:EqTimeEffect}
 \begin{equation}
 Y_{u,i} = \mu + b_{i} + b_{u}  + f(d_{u,i})+ \epsilon_{u,i}\text{, with f a smooth function of }d_{u,i}
@@ -563,7 +568,7 @@ The RMSE is then defined as Equation \ref{eq:EqLossFunction}:
 
 <!-- $$RMSE=\sqrt{\frac{1}{N}\sum_{u,i}(\hat{y}_{u,i}-y_{u,i})^{2}}$$ -->  
 
-\equations{Equation \ref{eq:EqLossFunction}}
+\equations{Loss function RMSE Equation \ref{eq:EqLossFunction}}
 \label{eq:EqLossFunction}
 \begin{equation}
   RMSE=\sqrt{\frac{1}{N}\sum_{u,i}(\hat{y}_{u,i}-y_{u,i})^{2}}
@@ -580,8 +585,8 @@ Let's write a function that computes the RMSE for vectors of ratings and their c
 RMSE <- function(true_ratings, predicted_ratings) {
     sqrt(mean((true_ratings - predicted_ratings)^2))
 }
+save(test_index, file = "rdas/test_index.rda")
 ```
-
 
 \newpage
 ## Model 1: A first naive "mean" model  
@@ -590,7 +595,7 @@ Let's start by building the simplest possible recommendation system: we predict 
 
 <!-- $$Y_{i,i}=\mu+\epsilon_{u,i}$$ -->
 
-\equations{Equation \ref{eq:EqModel1}}
+\equations{Model 1: A naive "mean" model Equation \ref{eq:EqModel1}}
 \label{eq:EqModel1}
 \begin{equation}
   Y_{i,i} = \mu + \epsilon_{u,i}
@@ -636,10 +641,9 @@ From looking at the distribution of ratings, we can visualize that this is the s
 
 As we go along, we will be comparing different approaches. Let's start by creating a results table with this naive approach to get Table \ref{tbl:rmse_results_model_1}:
 
-
 \begin{table}[H]
 
-\caption{\label{tab:unnamed-chunk-2}RMSE Results Model 1\label{tbl:rmse_results_model_1}}
+\caption{\label{tab:m_1_4}RMSE Results Model 1\label{tbl:rmse_results_model_1}}
 \centering
 \fontsize{7}{9}\selectfont
 \begin{tabular}[t]{llr}
@@ -657,10 +661,10 @@ We know from experience that some movies are just generally rated higher than ot
 
 <!-- $$Y_{u,i}=\mu+b_{i}+\epsilon_{u,i}$$ -->
 
-\equations{Equation \ref{eq:EqModel2-1}}
+\equations{Model 2: Movie effects linear model Equation \ref{eq:EqModel2-1}}
 \label{eq:EqModel2-1}
 \begin{equation}
-  Y_{i,i} = \mu + b_{i} + \epsilon_{u,i}
+  Y_{u,i} = \mu + b_{i} + \epsilon_{u,i}
 \end{equation}
 
 Statistics textbooks refer to the *b*s as effects or *"bias"*.
@@ -671,10 +675,10 @@ We can again use least squares to estimate the $b_{i}$ in the following way to g
 <!-- fit <- lm(rating ~ as.factor(userId), data = train_set) -->
 <!-- ``` -->
 
-\equations{Equation \ref{eq:EqModel2-2}}
+\equations{LSE linear function to fit Movie effects linear model Equation \ref{eq:EqModel2-2}}
 \label{eq:EqModel2-2}
 \begin{equation}
-  fit \leftarrow lm(rating \; \tilde \; as.factor(userId), \: data = train\_{}set)
+  fit \leftarrow lm(rating \; \sim \; as.factor(userId), \: data = train\_{}set)
 \end{equation}
 
 Because there are thousands of $b_{i}$ as each movie gets one, the lm() function 
@@ -686,8 +690,8 @@ $\hat{b_{i}}$ is just the average of $Y_{u,i}-\hat{\mu}$ for each movie *i*. So 
 
 ```r
 mu <- mean(train_set$rating)
-movie_avgs <- train_set %>% group_by(movieId) %>% summarize(b_i = mean(rating - mu))
-
+movie_avgs <- train_set %>% group_by(movieId) %>% summarize(b_i = mean(rating - 
+    mu))
 ```
 
 \newpage
@@ -700,9 +704,8 @@ Let's see how much our prediction improves once we use $\hat{y_{u,i}}=\hat{\mu}+
 
 
 ```r
-predicted_ratings_model_2 <- mu + test_set %>% left_join(movie_avgs, by = "movieId") %>% 
-    .$b_i
-
+predicted_ratings_model_2 <- mu + test_set %>% left_join(movie_avgs, 
+    by = "movieId") %>% .$b_i
 (model_2_rmse <- RMSE(predicted_ratings_model_2, test_set$rating))
 [1] 0.9437429
 ```
@@ -728,6 +731,98 @@ Index & Method & RMSE\\
 \end{table}
 
 \newpage
+## Model 3: User effects
+Let's compute *b_u* the average rating for user *u* for those that have rated over 100 movies:
+
+
+```r
+train_set %>% group_by(userId) %>% summarize(b_u = mean(rating)) %>% 
+    filter(n() >= 100) %>% ggplot(aes(b_u)) + geom_histogram(bins = 30, 
+    color = "black")
+```
+
+![](figures/ue_1-1.pdf)<!-- --> 
+
+\newpage
+Let's compute *b_u* the average rating for user *u* for those that have rated any movies:
+
+
+```r
+train_set %>% group_by(userId) %>% summarize(b_u = mean(rating)) %>% 
+    ggplot(aes(b_u)) + geom_histogram(bins = 30, color = "black")
+```
+
+![](figures/ue_2-1.pdf)<!-- --> 
+
+Notice that there is substantial variability across users as well: some users are very cranky and others love every movie. This implies that a further improvement to our model may be as shown in Equation \ref{eq:EqModel3-1}:
+
+<!-- $$Y_{u,i}=\mu+b_{i}+b_{u}+\epsilon_{u,i}$$ -->
+
+\equations{Model 3: Movie + User effects linear model Equation \ref{eq:EqModel3-1}}
+\label{eq:EqModel3-1}
+\begin{equation}
+  Y_{u,i} = \mu + b_{i} + b_{u} + \epsilon_{u,i}
+\end{equation}
+
+where $b_{u}$ is a user-specific effect. Now if a cranky user (negative $b_{u}$) rates a great movie (positive $b_{i}$), the effects counter each other and we may be able to correctly predict that this user gave this great movie a 3 rather than a 5.
+
+To fit this model, we could again use `lm()` as shown in Equation \ref{eq:EqModel3-2}:
+
+<!-- ```{r, ue_3, echo=TRUE, eval=FALSE} -->
+<!-- fit <- lm(rating ~ as.factor(movieId) + as.factor(userId), data = train_set) -->
+<!-- ``` -->
+
+\equations{LSE linear function to fit Movie + User effects linear model Equation \ref{eq:EqModel3-2}}
+\label{eq:EqModel3-2}
+\begin{equation}
+  fit \leftarrow lm(rating \; \sim \; as.factor(movieId) + as.factor(userId), \: data = train\_{}set)
+\end{equation}
+
+but, for the reasons described earlier, we won't. Instead, we will compute an approximation by computing $\hat{\mu}$ and $\hat{b_{i}}$ and estimating $\hat{b_{u}}$ as the average of $y_{u,i}-\hat{\mu}-\hat{b_{i}}$:
+
+
+```r
+user_avgs <- train_set %>% left_join(movie_avgs, by = "movieId") %>% 
+    group_by(userId) %>% summarize(b_u = mean(rating - mu - b_i))
+```
+
+We can now construct predictors and see how much the RMSE improves:
+
+
+```r
+predicted_ratings_model_3 <- test_set %>% left_join(movie_avgs, 
+    by = "movieId") %>% left_join(user_avgs, by = "userId") %>% 
+    mutate(pred = mu + b_i + b_u) %>% .$pred
+(model_3_rmse <- RMSE(predicted_ratings_model_3, test_set$rating))
+[1] 0.865932
+```
+
+\newpage
+### Results Table Model 1-3
+Let's add the user effects model to our results table to get Table \ref{tbl:rmse_results_model_1-3}
+
+\begin{table}[H]
+
+\caption{\label{tab:ue_5}RMSE Results Model 1-3\label{tbl:rmse_results_model_1-3}}
+\centering
+\fontsize{7}{9}\selectfont
+\begin{tabular}[t]{llr}
+\toprule
+Index & Method & RMSE\\
+\midrule
+1 & Just the average & 1.0599043\\
+2 & Movie Effect Model & 0.9437429\\
+3 & Movie + User Effects Model & 0.8659320\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+
+
+<!-- ```{r knitr_knit_exit} -->
+<!-- 	knitr::knit_exit() -->
+<!-- ``` -->
 
 # Results
 
@@ -1036,6 +1131,7 @@ test_set <- test_set %>%
 RMSE <- function(true_ratings, predicted_ratings){
   sqrt(mean((true_ratings - predicted_ratings)^2))
 }
+
 save(test_index, file = "rdas/test_index.rda")
 save(train_set, file = "rdas/train_set.rda")
 save(test_set, file = "rdas/test_set.rda")
@@ -1059,10 +1155,12 @@ save(rmse_results, file = "rdas/rmse_results.rda")
 save(model_1_rmse, file = "rdas/model_1_rmse.rda")
 
 rm(mu_hat,model_1_rmse)
+
 # rmse_results %>% knitr::kable()
   kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Model 1\\label{tbl:rmse_results_model_1}") %>%
     kable_styling(latex_options=c("HOLD_position"), font_size=7)
-mu <- mean(train_set$rating) 
+mu <- mean(train_set$rating)
+
 movie_avgs <- train_set %>% 
   group_by(movieId) %>% 
   summarize(b_i = mean(rating - mu))
@@ -1091,6 +1189,41 @@ save(rmse_results, file = "rdas/rmse_results.rda")
 rm(model_2_rmse,predicted_ratings_model_2)
 # rmse_results %>% knitr::kable()
   kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Model 1-2\\label{tbl:rmse_results_model_1-2}") %>%
+    kable_styling(latex_options=c("HOLD_position"), font_size=7)
+train_set %>% 
+  group_by(userId) %>% 
+  summarize(b_u = mean(rating)) %>% 
+  filter(n()>=100) %>%
+  ggplot(aes(b_u)) + 
+  geom_histogram(bins = 30, color = "black")
+train_set %>% 
+  group_by(userId) %>% 
+  summarize(b_u = mean(rating)) %>% 
+  ggplot(aes(b_u)) + 
+  geom_histogram(bins = 30, color = "black")
+user_avgs <- train_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  group_by(userId) %>%
+  summarize(b_u = mean(rating - mu - b_i))
+
+save(user_avgs, file = "rdas/user_avgs.rda")
+predicted_ratings_model_3 <- test_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>%
+  mutate(pred = mu + b_i + b_u) %>%
+  .$pred
+
+(model_3_rmse <- RMSE(predicted_ratings_model_3, test_set$rating))
+
+save(predicted_ratings_model_3, file = "rdas/predicted_ratings_model_3.rda")
+save(model_3_rmse, file = "rdas/model_3_rmse.rda")
+rmse_results <- bind_rows(rmse_results,
+                          tibble(Index = "3", Method="Movie + User Effects Model",  
+                                 RMSE = model_3_rmse))
+save(rmse_results, file = "rdas/rmse_results.rda")
+rm(model_3_rmse, predicted_ratings_model_3)
+# rmse_results %>% knitr::kable()
+  kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Model 1-3\\label{tbl:rmse_results_model_1-3}") %>%
     kable_styling(latex_options=c("HOLD_position"), font_size=7)
 	knitr::knit_exit()
 options(tinytex.verbose = TRUE)
