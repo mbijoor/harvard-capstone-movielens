@@ -40,7 +40,7 @@ header-includes:
     bookmarksnumbered=true,
     bookmarksopen=true,
     bookmarksopenlevel=3,
-    pdfpagemode=UseOutlines,
+    pdfpagemode=FullScreen,
     pdfstartpage=1,
     hyperindex=true,
     pageanchor=true,
@@ -735,24 +735,24 @@ Let's start by building the simplest possible recommendation system: we predict 
 \equations{Equation \ref{eq:EqModel1}}
 \label{eq:EqModel1}
 \begin{equation}
-  Y_{i,i}=\mu+\epsilon_{u,i}
+  Y_{i,i} = \mu + \epsilon_{u,i}
 \end{equation}
 
 with $\epsilon_{u,i}$ independent errors sampled from the same distribution centered at 0 and $\mu$ the "true" rating for all movies. We know that the estimate that minimizes the RMSE is the least squares estimate of $\mu$ and, in this case, is the average of all ratings:
 
-```{r, nm_1, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE}
+```{r, m_1_1, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE}
 (mu_hat <- mean(train_set$rating))
 ```
 
 If we predict all unknown ratings with $\hat\mu$ we obtain the following RMSE:
 
-```{r, nm_2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE}
-(naive_rmse <- RMSE(test_set$rating, mu_hat))
+```{r, m_1_2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE}
+(model_1_rmse <- RMSE(test_set$rating, mu_hat))
 ```
 
 Keep in mind that if we plug in any other number, we get a higher RMSE. For example:
 
-```{r, nm_3, echo=1:8,  eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE}
+```{r, m_1_3, echo=1:8,  eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE}
 predictions <- rep(2.5, nrow(test_set))
 RMSE(test_set$rating, predictions)
 
@@ -768,29 +768,111 @@ rm(predictions)
 From looking at the distribution of ratings, we can visualize that this is the standard deviation of that distribution. We get a RMSE of about 1. Our target is RMSE < 0.86490. So we can definitely do better!
 
 \newpage
-### Results Table
+### Results Model 1
 
-As we go along, we will be comparing different approaches. Let's start by creating a results table with this naive approach:
-```{r, nm_4, echo=FALSE, eval=TRUE}
-rmse_results <- tibble(Index = "1", Method = "Just the average", RMSE = naive_rmse)
+As we go along, we will be comparing different approaches. Let's start by creating a results table with this naive approach to get Table \ref{tbl:rmse_results_model_1}:
+
+```{r, m_1_4, echo=FALSE, eval=TRUE}
+rmse_results <- tibble(Index = "1", Method = "Just the average", RMSE = model_1_rmse)
 
 save(rmse_results, file = "rdas/rmse_results.rda")
+save(model_1_rmse, file = "rdas/model_1_rmse.rda")
 
-rm(mu_hat,naive_rmse)
+rm(mu_hat,model_1_rmse)
 ```
 ```{r, echo=FALSE, eval=TRUE}
 # rmse_results %>% knitr::kable()
-  kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results\\label{tbl:rmse_results}") %>%
+  kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Model 1\\label{tbl:rmse_results_model_1}") %>%
     kable_styling(latex_options=c("HOLD_position"), font_size=7)
 ```
 
+\newpage
+## Model 2: Movie effects
+We know from experience that some movies are just generally rated higher than others. This intuition, that different movies are rated differently, is confirmed by data. We can augment our previous model by adding the term $b_{i}$ to represent average ranking for movie *i* and would look like Equation \ref{eq:EqModel2-1}: 
 
-```{r knitr_knit_exit}
-	knitr::knit_exit()
+<!-- $$Y_{u,i}=\mu+b_{i}+\epsilon_{u,i}$$ -->
+
+\equations{Equation \ref{eq:EqModel2-1}}
+\label{eq:EqModel2-1}
+\begin{equation}
+  Y_{i,i} = \mu + b_{i} + \epsilon_{u,i}
+\end{equation}
+
+Statistics textbooks refer to the *b*s as effects or *"bias"*.
+
+We can again use least squares to estimate the $b_{i}$ in the following way to get Equation \ref{eq:EqModel2-2}: 
+
+<!-- ```{r, m_2_1, echo=TRUE, eval=FALSE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE} -->
+<!-- fit <- lm(rating ~ as.factor(userId), data = train_set) -->
+<!-- ``` -->
+
+\equations{Equation \ref{eq:EqModel2-2}}
+\label{eq:EqModel2-2}
+\begin{equation}
+  fit \leftarrow lm(rating \; \tilde \; as.factor(userId), \: data = train\_{}set)
+\end{equation}
+
+Because there are thousands of $b_{i}$ as each movie gets one, the lm() function 
+will be very slow here. We therefore will not run the code above.
+
+But in this particular situation, we know that the least squares estimate 
+$\hat{b_{i}}$ is just the average of $Y_{u,i}-\hat{\mu}$ for each movie *i*. So we can compute them this way (we will drop the hat notation in the code to represent estimates going forward):   
+
+```{r, m_2_2, echo=1:3, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE}
+mu <- mean(train_set$rating) 
+movie_avgs <- train_set %>% 
+  group_by(movieId) %>% 
+  summarize(b_i = mean(rating - mu))
+
+save(mu, file = "rdas/mu.rda")
+save(movie_avgs, file = "rdas/movie_avgs.rda")
 ```
 
+\newpage
+We can see that these estimates vary substantially:
+
+```{r, m_2_3, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Movie effect or bias distribution\\label{fig:model_2}"}
+movie_avgs %>%  
+  ggplot(aes(b_i)) + 
+  geom_histogram(bins = 10, color = "black") + 
+  # scale_x_log10() +  # try with and without this line
+  ggtitle("Movie effect or bias distribution")
+```
+
+Remember $\hat{\mu}$=3.5 so a $b_{i}$=1.5 implies a perfect five star rating.
+Let's see how much our prediction improves once we use $\hat{y_{u,i}}=\hat{\mu}+\hat{b_{i}}$:
+
+```{r, m_2_4, echo=1:4, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE}
+predicted_ratings_model_2 <- mu + test_set %>% 
+  left_join(movie_avgs, by='movieId') %>% 
+  .$b_i
+
+(model_2_rmse <- RMSE(predicted_ratings_model_2, test_set$rating))
+
+save(predicted_ratings_model_2, file = "rdas/predicted_ratings_model_2.rda")
+save(model_2_rmse, file = "rdas/model_2_rmse.rda")
+
+rmse_results <- bind_rows(rmse_results,
+                          tibble(Index = "2", Method="Movie Effect Model",
+                                 RMSE = model_2_rmse))
+
+save(rmse_results, file = "rdas/rmse_results.rda")
+rm(model_2_rmse,predicted_ratings_model_2)
+```
 
 \newpage
+### Results Model 1-2
+
+Let's add the movie effects model to our results table to get Table \ref{tbl:rmse_results_model_1-2}
+
+```{r, m_2_5, echo=FALSE, eval=TRUE}
+# rmse_results %>% knitr::kable()
+  kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Model 1-2\\label{tbl:rmse_results_model_1-2}") %>%
+    kable_styling(latex_options=c("HOLD_position"), font_size=7)
+```
+
+\newpage
+
 # Results
 
 ---  
@@ -814,6 +896,10 @@ Terms like generate\index{generate} and some\index{others} will also show up.
 
 \printindex
 
+
+```{r knitr_knit_exit}
+	knitr::knit_exit()
+```
 
 \newpage
 # List of tables{-}
