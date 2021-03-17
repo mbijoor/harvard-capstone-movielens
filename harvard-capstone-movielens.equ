@@ -10,3 +10,8 @@
 \contentsline {equations}{ \numberline {10}Model 4: Movie + User + Genre effects linear model Equation \ref {eq:EqModel4-1}}{28}{equations.10}%
 \contentsline {equations}{ \numberline {11}LSE linear function to fit Movie + User + Genres effects linear model Equation \ref {eq:EqModel4-2}}{28}{equations.11}%
 \contentsline {equations}{ \numberline {12}Genres specific effects Equation \ref {eq:EqModel4-3}}{29}{equations.12}%
+\contentsline {equations}{ \numberline {13}Genres specific effects Equation \ref {eq:EqModel4-4}}{29}{equations.13}%
+\contentsline {equations}{ \numberline {14}Model 5: Movie + User + Genre + Rating time effects linear model Equation \ref {eq:EqModel5-1}}{32}{equations.14}%
+\contentsline {equations}{ \numberline {15}LSE linear function to fit Movie + User + Genres + Rating time effects linear model Equation \ref {eq:EqModel5-2}}{32}{equations.15}%
+\contentsline {equations}{ \numberline {16}Rating time specific effects Equation \ref {eq:EqModel5-3}}{32}{equations.16}%
+\contentsline {equations}{ \numberline {17}Rating time specific effects in function form Equation \ref {eq:EqModel5-4}}{32}{equations.17}%

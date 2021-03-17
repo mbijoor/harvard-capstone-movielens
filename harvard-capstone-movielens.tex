@@ -988,15 +988,16 @@ above.
 
 But in this particular situation, we know that the least squares
 estimate \(\hat{b_{i}}\) is just the average of \(Y_{u,i}-\hat{\mu}\)
-for each movie \emph{i}. So we can compute them this way (we will drop
-the hat notation in the code to represent estimates going forward):
+for each movie \emph{i}. \textbf{\emph{So we can compute them this way
+(we will drop the hat notation in the code to represent estimates going
+forward)}}:
 
 %
 \refstepcounter{equations}
 \addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Movie specific effects Equation \ref{eq:EqModel2-3}}\par
 
 \label{eq:EqModel2-3} \begin{equation}
-  b_{u} = \overline{y_{u,i} - \hat{\mu}}
+  \hat{b_{i}} = \overline{y_{u,i} - \hat{\mu}}
 \end{equation}
 
 \begin{Shaded}
@@ -1138,7 +1139,7 @@ and estimating \(\hat{b_{u}}\) as the average of
 \addcontentsline{equ}{equations}{ \protect\numberline{\theequations}User specific effects Equation \ref{eq:EqModel3-3}}\par
 
 \label{eq:EqModel3-3} \begin{equation}
-  b_{u} = \overline{y_{u,i} - \hat{\mu} - \hat{b_{i}}}
+  \hat{b_{u}} = \overline{y_{u,i} - \hat{\mu} - \hat{b_{i}}}
 \end{equation}
 
 \newpage
@@ -1246,27 +1247,40 @@ Equation \ref{eq:EqModel4-2}:
 \addcontentsline{equ}{equations}{ \protect\numberline{\theequations}LSE linear function to fit Movie + User + Genres effects linear model Equation \ref{eq:EqModel4-2}}\par
 
 \label{eq:EqModel4-2} \begin{equation}
-  fit \leftarrow lm(rating \; \sim \; as.factor(movieId) + as.factor(userId) + as.factor(genres), \: data = train\_{}set)
+\begin{split}
+  fit \leftarrow lm(rating \; \sim \; & as.factor(movieId) + as.factor(userId) + \\ 
+  & as.factor(genres), \: data = train\_{}set)
+\end{split}
 \end{equation}
 
 but, for the reasons described earlier, we won't. Instead, we will
 compute an approximation by computing \(\hat{\mu}\), \(\hat{b_{i}}\),
 \(\hat{b_{u}}\) and estimating \(\hat{b_{g}}\) as the average of
-\(y_{u,i}-\hat{\mu}-\hat{b_{i}}-\hat{b_{u}}\) where:\\
+\(y_{u,i}-\hat{\mu}-\hat{b_{i}}-\hat{b_{u}}\) :
 
 %
 \refstepcounter{equations}
 \addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Genres specific effects Equation \ref{eq:EqModel4-3}}\par
 
 \label{eq:EqModel4-3} \begin{equation}
-  b_{g} = \sum_{k=1}^Kx_{u,i}\beta_k
+  \hat{b_{g}} = \overline{y_{u,i} - \hat{\mu} - \hat{b_{i}} - \hat{b_{u}}}
+\end{equation}
+
+where:
+
+%
+\refstepcounter{equations}
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Genres specific effects Equation \ref{eq:EqModel4-4}}\par
+
+\label{eq:EqModel4-4} \begin{equation}
+  \hat{b_{g}} = \sum_{k=1}^Kx_{u,i}\beta_k
 \end{equation}
 
 \begin{center}
 with $x_{u,i}^k=1$ if $g_{u,i}$ is genre *k*
 \end{center}
 
-where \(b_{g}\) is genre specific effect.
+where \(\hat{b_{g}}\) is genre specific effect.
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -1319,6 +1333,136 @@ Index & Method & RMSE\\
 2 & Movie Effect Model & 0.9437429\\
 3 & Movie + User Effects Model & 0.8659320\\
 4 & Movie + User + Genres Effects Model & 0.8655941\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+
+\hypertarget{model-5-rating-time-effect}{%
+\subsection{Model 5 : Rating Time
+effect}\label{model-5-rating-time-effect}}
+
+The movielens dataset also includes a time stamp. This variable
+represents the time and date in which the rating was provided. Earlier
+in the EDA/Data wrangling section we created a new column date with the
+time stamp.
+
+We computed the average rating for each week and plotted this average
+against day.
+
+The plot shows some evidence of a time effect. If we define \(d_{u,i}\)
+as the day for user's \emph{u} rating of movie \emph{i}, then the
+following updated model as shown in Equation \ref{eq:EqModel5-1} is most
+appropriate:\\
+
+%
+\refstepcounter{equations}
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Model 5: Movie + User + Genre + Rating time effects linear model Equation \ref{eq:EqModel5-1}}\par
+
+\label{eq:EqModel5-1} \begin{equation}
+  Y_{u,i} = \mu + b_{i} + b_{u} + \sum_{k=1}^Kx_{u,i}\beta_k +f(d_{u,i}) + \epsilon_{u,i}
+\end{equation}
+
+\begin{center}
+with f a smooth function of $d_{u,i}$
+\end{center}
+
+To fit this model, we could again use lm() function as shown in Equation
+\ref{eq:EqModel5-2}:
+
+%
+\refstepcounter{equations}
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}LSE linear function to fit Movie + User + Genres + Rating time effects linear model Equation \ref{eq:EqModel5-2}}\par
+
+\label{eq:EqModel5-2} \begin{equation}
+\begin{split}
+  fit \leftarrow lm(rating \; \sim \; & as.factor(movieId) + as.factor(userId) + \\ 
+  & as.factor(genres) + as.factor(date), \: data = train\_{}set)
+\end{split}
+\end{equation}
+
+but, for the reasons described earlier, we won't. Instead, we will
+compute an approximation by computing \(\hat{\mu}\), \(\hat{b_{i}}\),
+\(\hat{b_{u}}\), \(\hat{b_{g}}\) and estimating \(\hat{b_{d}}\) as the
+average of \(y_{u,i}-\hat{\mu}-\hat{b_{i}}-\hat{b_{u}}-\hat{b_{g}}\) :\\
+
+%
+\refstepcounter{equations}
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Rating time specific effects Equation \ref{eq:EqModel5-3}}\par
+
+\label{eq:EqModel5-3} \begin{equation}
+  \hat{b_{d}} = \overline{y_{u,i} - \hat{\mu} - \hat{b_{i}} - \hat{b_{u}}  - \hat{b_{u}}}
+\end{equation}
+
+where:
+
+%
+\refstepcounter{equations}
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Rating time specific effects in function form Equation \ref{eq:EqModel5-4}}\par
+
+\label{eq:EqModel5-4} \begin{equation}
+  \hat{b_{d}} = f(d_{u,i})
+\end{equation}
+
+where \(\hat{b_{d}}\) is rating time specific effect.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{time\_effect\_avgs }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }\AttributeTok{by =} \StringTok{"movieId"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{left\_join}\NormalTok{(user\_avgs, }\AttributeTok{by =} \StringTok{"userId"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{left\_join}\NormalTok{(genres\_avgs, }
+    \AttributeTok{by =} \StringTok{"genres"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{group\_by}\NormalTok{(date) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_d =} \FunctionTok{mean}\NormalTok{(avg\_rating }\SpecialCharTok{{-}} 
+\NormalTok{    mu }\SpecialCharTok{{-}}\NormalTok{ b\_i }\SpecialCharTok{{-}}\NormalTok{ b\_u }\SpecialCharTok{{-}}\NormalTok{ b\_g))}
+\end{Highlighting}
+\end{Shaded}
+
+\newpage
+
+We can see that these estimates vary substantially, see Figure
+\ref{fig:model_4}
+
+\begin{figure}
+\centering
+\includegraphics{figures/rte_3-1.pdf}
+\caption{Rating time effect or bias distribution\label{fig:model_5}}
+\end{figure}
+
+We can now construct predictors and see how much the RMSE improves
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{predicted\_ratings\_model\_5 }\OtherTok{\textless{}{-}}\NormalTok{ test\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }
+    \AttributeTok{by =} \StringTok{"movieId"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{left\_join}\NormalTok{(user\_avgs, }\AttributeTok{by =} \StringTok{"userId"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{left\_join}\NormalTok{(genres\_avgs, }\AttributeTok{by =} \StringTok{"genres"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{left\_join}\NormalTok{(time\_effect\_avgs, }
+    \AttributeTok{by =} \StringTok{"date"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{mutate}\NormalTok{(}\AttributeTok{pred =}\NormalTok{ mu }\SpecialCharTok{+}\NormalTok{ b\_i }\SpecialCharTok{+}\NormalTok{ b\_u }\SpecialCharTok{+}\NormalTok{ b\_g }\SpecialCharTok{+}\NormalTok{ b\_d) }\SpecialCharTok{\%\textgreater{}\%} 
+\NormalTok{    .}\SpecialCharTok{$}\NormalTok{pred}
+\NormalTok{(model\_5\_rmse }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(predicted\_ratings\_model\_5, test\_set}\SpecialCharTok{$}\NormalTok{rating))}
+\NormalTok{[}\DecValTok{1}\NormalTok{] }\FloatTok{0.8654205}
+\end{Highlighting}
+\end{Shaded}
+
+\newpage
+
+\hypertarget{results-table-model-1-5}{%
+\subsubsection{Results Table Model 1-5}\label{results-table-model-1-5}}
+
+Let's add the Rating Time effects model to our results table to get
+Table \ref{tbl:rmse_results_model_1-5}
+
+\begin{table}[H]
+
+\caption{\label{tab:rte_5}RMSE Results Model 1-5\label{tbl:rmse_results_model_1-5}}
+\centering
+\fontsize{7}{9}\selectfont
+\begin{tabular}[t]{llr}
+\toprule
+Index & Method & RMSE\\
+\midrule
+1 & Just the average & 1.0599043\\
+2 & Movie Effect Model & 0.9437429\\
+3 & Movie + User Effects Model & 0.8659320\\
+4 & Movie + User + Genres Effects Model & 0.8655941\\
+5 & Movie + User + Genres + Rating Time Effects Model & 0.8654205\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1802,6 +1946,41 @@ report}\label{appendix-all-code-for-this-report}}
 \FunctionTok{rm}\NormalTok{(model\_4\_rmse, predicted\_ratings\_model\_4)}
 \CommentTok{\# rmse\_results \%\textgreater{}\% knitr::kable()}
   \FunctionTok{kable}\NormalTok{(rmse\_results, }\StringTok{"latex"}\NormalTok{, }\AttributeTok{escape=}\ConstantTok{FALSE}\NormalTok{, }\AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{, }\AttributeTok{linesep=}\StringTok{""}\NormalTok{, }\AttributeTok{caption=}\StringTok{"RMSE Results Model 1{-}4}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{label\{tbl:rmse\_results\_model\_1{-}4\}"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{kable\_styling}\NormalTok{(}\AttributeTok{latex\_options=}\FunctionTok{c}\NormalTok{(}\StringTok{"HOLD\_position"}\NormalTok{), }\AttributeTok{font\_size=}\DecValTok{7}\NormalTok{)}
+\NormalTok{time\_effect\_avgs }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}movieId\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{left\_join}\NormalTok{(user\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}userId\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{left\_join}\NormalTok{(genres\_avgs, }\AttributeTok{by =} \StringTok{"genres"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{group\_by}\NormalTok{(date) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_d =} \FunctionTok{mean}\NormalTok{(avg\_rating }\SpecialCharTok{{-}}\NormalTok{ mu }\SpecialCharTok{{-}}\NormalTok{ b\_i }\SpecialCharTok{{-}}\NormalTok{ b\_u }\SpecialCharTok{{-}}\NormalTok{ b\_g))}
+\NormalTok{time\_effect\_avgs }\SpecialCharTok{\%\textgreater{}\%}  
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(b\_d)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{10}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+} 
+  \CommentTok{\# scale\_x\_log10() +  \# try with and without this line}
+  \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Rating time effect or bias distribution"}\NormalTok{)}
+\NormalTok{predicted\_ratings\_model\_5 }\OtherTok{\textless{}{-}}\NormalTok{ test\_set }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}movieId\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{left\_join}\NormalTok{(user\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}userId\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{left\_join}\NormalTok{(genres\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}genres\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{left\_join}\NormalTok{(time\_effect\_avgs, }\AttributeTok{by =} \StringTok{"date"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{pred =}\NormalTok{ mu }\SpecialCharTok{+}\NormalTok{ b\_i }\SpecialCharTok{+}\NormalTok{ b\_u }\SpecialCharTok{+}\NormalTok{ b\_g }\SpecialCharTok{+}\NormalTok{ b\_d) }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  .}\SpecialCharTok{$}\NormalTok{pred}
+
+\NormalTok{(model\_5\_rmse }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(predicted\_ratings\_model\_5, test\_set}\SpecialCharTok{$}\NormalTok{rating))}
+
+\FunctionTok{save}\NormalTok{(time\_effect\_avgs, }\AttributeTok{file =} \StringTok{"rdas/time\_effect\_avgs.rda"}\NormalTok{)}
+\FunctionTok{save}\NormalTok{(predicted\_ratings\_model\_5, }\AttributeTok{file =} \StringTok{"rdas/predicted\_ratings\_model\_5.rda"}\NormalTok{)}
+\FunctionTok{save}\NormalTok{(model\_5\_rmse, }\AttributeTok{file =} \StringTok{"rdas/model\_5\_rmse.rda"}\NormalTok{)}
+
+\NormalTok{rmse\_results }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(rmse\_results,}
+                          \FunctionTok{tibble}\NormalTok{(}\AttributeTok{Index =} \StringTok{"5"}\NormalTok{, }\AttributeTok{Method=}\StringTok{"Movie + User + Genres + Rating Time Effects Model"}\NormalTok{,  }
+                                 \AttributeTok{RMSE =}\NormalTok{ model\_5\_rmse))}
+
+\FunctionTok{save}\NormalTok{(rmse\_results, }\AttributeTok{file =} \StringTok{"rdas/rmse\_results.rda"}\NormalTok{)}
+
+\FunctionTok{rm}\NormalTok{(model\_5\_rmse, predicted\_ratings\_model\_5)}
+\CommentTok{\# rmse\_results \%\textgreater{}\% knitr::kable()}
+  \FunctionTok{kable}\NormalTok{(rmse\_results, }\StringTok{"latex"}\NormalTok{, }\AttributeTok{escape=}\ConstantTok{FALSE}\NormalTok{, }\AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{, }\AttributeTok{linesep=}\StringTok{""}\NormalTok{, }\AttributeTok{caption=}\StringTok{"RMSE Results Model 1{-}5}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{label\{tbl:rmse\_results\_model\_1{-}5\}"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
     \FunctionTok{kable\_styling}\NormalTok{(}\AttributeTok{latex\_options=}\FunctionTok{c}\NormalTok{(}\StringTok{"HOLD\_position"}\NormalTok{), }\AttributeTok{font\_size=}\DecValTok{7}\NormalTok{)}
 \NormalTok{    knitr}\SpecialCharTok{::}\FunctionTok{knit\_exit}\NormalTok{()}
 \FunctionTok{options}\NormalTok{(}\AttributeTok{tinytex.verbose =} \ConstantTok{TRUE}\NormalTok{)}

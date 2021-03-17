@@ -684,12 +684,12 @@ Because there are thousands of $b_{i}$ as each movie gets one, the lm() function
 will be very slow here. We therefore will not run the code above.
 
 But in this particular situation, we know that the least squares estimate 
-$\hat{b_{i}}$ is just the average of $Y_{u,i}-\hat{\mu}$ for each movie *i*. So we can compute them this way (we will drop the hat notation in the code to represent estimates going forward): 
+$\hat{b_{i}}$ is just the average of $Y_{u,i}-\hat{\mu}$ for each movie *i*. **_So we can compute them this way (we will drop the hat notation in the code to represent estimates going forward)_**: 
 
 \equations{Movie specific effects Equation \ref{eq:EqModel2-3}}
 \label{eq:EqModel2-3}
 \begin{equation}
-  b_{u} = \overline{y_{u,i} - \hat{\mu}}
+  \hat{b_{i}} = \overline{y_{u,i} - \hat{\mu}}
 \end{equation}
 
 
@@ -789,7 +789,7 @@ but, for the reasons described earlier, we won't. Instead, we will compute an ap
 \equations{User specific effects Equation \ref{eq:EqModel3-3}}
 \label{eq:EqModel3-3}
 \begin{equation}
-  b_{u} = \overline{y_{u,i} - \hat{\mu} - \hat{b_{i}}}
+  \hat{b_{u}} = \overline{y_{u,i} - \hat{\mu} - \hat{b_{i}}}
 \end{equation}
 
 \newpage
@@ -873,23 +873,34 @@ To fit this model, we could again use the lm() function as shown in Equation \re
 \equations{LSE linear function to fit Movie + User + Genres effects linear model Equation \ref{eq:EqModel4-2}}
 \label{eq:EqModel4-2}
 \begin{equation}
-  fit \leftarrow lm(rating \; \sim \; as.factor(movieId) + as.factor(userId) + as.factor(genres), \: data = train\_{}set)
+\begin{split}
+  fit \leftarrow lm(rating \; \sim \; & as.factor(movieId) + as.factor(userId) + \\ 
+  & as.factor(genres), \: data = train\_{}set)
+\end{split}
 \end{equation}
 
-but, for the reasons described earlier, we won't. Instead, we will compute an approximation by computing $\hat{\mu}$, $\hat{b_{i}}$, $\hat{b_{u}}$ and estimating $\hat{b_{g}}$ as the average of $y_{u,i}-\hat{\mu}-\hat{b_{i}}-\hat{b_{u}}$ where:  
+but, for the reasons described earlier, we won't. Instead, we will compute an approximation by computing $\hat{\mu}$, $\hat{b_{i}}$, $\hat{b_{u}}$ and estimating $\hat{b_{g}}$ as the average of $y_{u,i}-\hat{\mu}-\hat{b_{i}}-\hat{b_{u}}$ : 
 <!-- $$b_{g}=\sum_{k=1}^Kx_{u,i}\beta_k$$ -->
 
 \equations{Genres specific effects Equation \ref{eq:EqModel4-3}}
 \label{eq:EqModel4-3}
 \begin{equation}
-  b_{g} = \sum_{k=1}^Kx_{u,i}\beta_k
+  \hat{b_{g}} = \overline{y_{u,i} - \hat{\mu} - \hat{b_{i}} - \hat{b_{u}}}
+\end{equation}
+
+where:  
+
+\equations{Genres specific effects Equation \ref{eq:EqModel4-4}}
+\label{eq:EqModel4-4}
+\begin{equation}
+  \hat{b_{g}} = \sum_{k=1}^Kx_{u,i}\beta_k
 \end{equation}
 
 \begin{center}
 with $x_{u,i}^k=1$ if $g_{u,i}$ is genre *k*
 \end{center}
 
-where $b_{g}$ is genre specific effect.
+where $\hat{b_{g}}$ is genre specific effect.
 
 
 ```r
@@ -937,10 +948,111 @@ Index & Method & RMSE\\
 \end{tabular}
 \end{table}
 
+\newpage
+## Model 5 : Rating Time effect
+The movielens dataset also includes a time stamp. This variable represents the time and date in which the rating was provided. Earlier in the EDA/Data wrangling section we created a new column date with the time stamp.   
+
+We computed the average rating for each week and plotted this average against day.   
+
+The plot shows some evidence of a time effect. If we define $d_{u,i}$ as the day for user's *u* rating of movie *i*, then the following updated model as shown in Equation \ref{eq:EqModel5-1} is most appropriate:   
+<!-- $$Y_{u,i}=\mu+b_{i}+b_{u}+\sum_{k=1}^Kx_{u,i}\beta_k+f(d_{u,i})+\epsilon_{u,i}$$    -->
+
+\equations{Model 5: Movie + User + Genre + Rating time effects linear model Equation \ref{eq:EqModel5-1}}
+\label{eq:EqModel5-1}
+\begin{equation}
+  Y_{u,i} = \mu + b_{i} + b_{u} + \sum_{k=1}^Kx_{u,i}\beta_k +f(d_{u,i}) + \epsilon_{u,i}
+\end{equation}
+
+\begin{center}
+with f a smooth function of $d_{u,i}$
+\end{center}
+
+To fit this model, we could again use lm() function as shown in Equation \ref{eq:EqModel5-2}:
+
+<!-- ```{r, rte_1, echo=TRUE, eval=FALSE} -->
+<!-- fit <- lm(rating ~ as.factor(movieId) + as.factor(userId) + as.factor(genres) + as.factor(date), data = train_set) -->
+<!-- ``` -->
+\equations{LSE linear function to fit Movie + User + Genres + Rating time effects linear model Equation \ref{eq:EqModel5-2}}
+\label{eq:EqModel5-2}
+\begin{equation}
+\begin{split}
+  fit \leftarrow lm(rating \; \sim \; & as.factor(movieId) + as.factor(userId) + \\ 
+  & as.factor(genres) + as.factor(date), \: data = train\_{}set)
+\end{split}
+\end{equation}
+
+but, for the reasons described earlier, we won't. Instead, we will compute an approximation by computing $\hat{\mu}$, $\hat{b_{i}}$, $\hat{b_{u}}$, $\hat{b_{g}}$  and estimating  $\hat{b_{d}}$ as the average of $y_{u,i}-\hat{\mu}-\hat{b_{i}}-\hat{b_{u}}-\hat{b_{g}}$ :   
+<!-- $$\hat{b_{d}}=f(d_{u,i})$$ -->
+
+\equations{Rating time specific effects Equation \ref{eq:EqModel5-3}}
+\label{eq:EqModel5-3}
+\begin{equation}
+  \hat{b_{d}} = \overline{y_{u,i} - \hat{\mu} - \hat{b_{i}} - \hat{b_{u}}  - \hat{b_{u}}}
+\end{equation}
+
+where:
+
+\equations{Rating time specific effects in function form Equation \ref{eq:EqModel5-4}}
+\label{eq:EqModel5-4}
+\begin{equation}
+  \hat{b_{d}} = f(d_{u,i})
+\end{equation}
+
+where $\hat{b_{d}}$ is rating time specific effect.
+
+
+```r
+time_effect_avgs <- train_set %>% left_join(movie_avgs, by = "movieId") %>% 
+    left_join(user_avgs, by = "userId") %>% left_join(genres_avgs, 
+    by = "genres") %>% group_by(date) %>% summarize(b_d = mean(avg_rating - 
+    mu - b_i - b_u - b_g))
+```
+
+\newpage
+We can see that these estimates vary substantially, see Figure \ref{fig:model_4}
+
+![Rating time effect or bias distribution\label{fig:model_5}](figures/rte_3-1.pdf) 
+
+We can now construct predictors and see how much the RMSE improves
+
+
+```r
+predicted_ratings_model_5 <- test_set %>% left_join(movie_avgs, 
+    by = "movieId") %>% left_join(user_avgs, by = "userId") %>% 
+    left_join(genres_avgs, by = "genres") %>% left_join(time_effect_avgs, 
+    by = "date") %>% mutate(pred = mu + b_i + b_u + b_g + b_d) %>% 
+    .$pred
+(model_5_rmse <- RMSE(predicted_ratings_model_5, test_set$rating))
+[1] 0.8654205
+```
+
+\newpage
+### Results Table Model 1-5
+Let's add the Rating Time effects model to our results table to get Table \ref{tbl:rmse_results_model_1-5}
+
+\begin{table}[H]
+
+\caption{\label{tab:rte_5}RMSE Results Model 1-5\label{tbl:rmse_results_model_1-5}}
+\centering
+\fontsize{7}{9}\selectfont
+\begin{tabular}[t]{llr}
+\toprule
+Index & Method & RMSE\\
+\midrule
+1 & Just the average & 1.0599043\\
+2 & Movie Effect Model & 0.9437429\\
+3 & Movie + User Effects Model & 0.8659320\\
+4 & Movie + User + Genres Effects Model & 0.8655941\\
+5 & Movie + User + Genres + Rating Time Effects Model & 0.8654205\\
+\bottomrule
+\end{tabular}
+\end{table}
+
 
 <!-- ```{r knitr_knit_exit} -->
 <!-- 	knitr::knit_exit() -->
 <!-- ``` -->
+
 \newpage
 # Results
 
@@ -1413,6 +1525,41 @@ save(rmse_results, file = "rdas/rmse_results.rda")
 rm(model_4_rmse, predicted_ratings_model_4)
 # rmse_results %>% knitr::kable()
   kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Model 1-4\\label{tbl:rmse_results_model_1-4}") %>%
+    kable_styling(latex_options=c("HOLD_position"), font_size=7)
+time_effect_avgs <- train_set %>%
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>% 
+  left_join(genres_avgs, by = "genres") %>% 
+  group_by(date) %>% 
+  summarize(b_d = mean(avg_rating - mu - b_i - b_u - b_g))
+time_effect_avgs %>%  
+  ggplot(aes(b_d)) + 
+  geom_histogram(bins = 10, color = "black") + 
+  # scale_x_log10() +  # try with and without this line
+  ggtitle("Rating time effect or bias distribution")
+predicted_ratings_model_5 <- test_set %>% 
+  left_join(movie_avgs, by='movieId') %>% 
+  left_join(user_avgs, by='userId') %>% 
+  left_join(genres_avgs, by='genres') %>% 
+  left_join(time_effect_avgs, by = "date") %>%
+  mutate(pred = mu + b_i + b_u + b_g + b_d) %>%
+  .$pred
+
+(model_5_rmse <- RMSE(predicted_ratings_model_5, test_set$rating))
+
+save(time_effect_avgs, file = "rdas/time_effect_avgs.rda")
+save(predicted_ratings_model_5, file = "rdas/predicted_ratings_model_5.rda")
+save(model_5_rmse, file = "rdas/model_5_rmse.rda")
+
+rmse_results <- bind_rows(rmse_results,
+                          tibble(Index = "5", Method="Movie + User + Genres + Rating Time Effects Model",  
+                                 RMSE = model_5_rmse))
+
+save(rmse_results, file = "rdas/rmse_results.rda")
+
+rm(model_5_rmse, predicted_ratings_model_5)
+# rmse_results %>% knitr::kable()
+  kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Model 1-5\\label{tbl:rmse_results_model_1-5}") %>%
     kable_styling(latex_options=c("HOLD_position"), font_size=7)
 	knitr::knit_exit()
 options(tinytex.verbose = TRUE)
