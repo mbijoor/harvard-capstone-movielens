@@ -3,5 +3,10 @@
 \contentsline {equations}{ \numberline {3}Model 1: A naive "mean" model Equation \ref {eq:EqModel1}}{19}{equations.3}%
 \contentsline {equations}{ \numberline {4}Model 2: Movie effects linear model Equation \ref {eq:EqModel2-1}}{21}{equations.4}%
 \contentsline {equations}{ \numberline {5}LSE linear function to fit Movie effects linear model Equation \ref {eq:EqModel2-2}}{21}{equations.5}%
-\contentsline {equations}{ \numberline {6}Model 3: Movie + User effects linear model Equation \ref {eq:EqModel3-1}}{25}{equations.6}%
-\contentsline {equations}{ \numberline {7}LSE linear function to fit Movie + User effects linear model Equation \ref {eq:EqModel3-2}}{25}{equations.7}%
+\contentsline {equations}{ \numberline {6}Movie specific effects Equation \ref {eq:EqModel2-3}}{21}{equations.6}%
+\contentsline {equations}{ \numberline {7}Model 3: Movie + User effects linear model Equation \ref {eq:EqModel3-1}}{25}{equations.7}%
+\contentsline {equations}{ \numberline {8}LSE linear function to fit Movie + User effects linear model Equation \ref {eq:EqModel3-2}}{25}{equations.8}%
+\contentsline {equations}{ \numberline {9}User specific effects Equation \ref {eq:EqModel3-3}}{25}{equations.9}%
+\contentsline {equations}{ \numberline {10}Model 4: Movie + User + Genre effects linear model Equation \ref {eq:EqModel4-1}}{28}{equations.10}%
+\contentsline {equations}{ \numberline {11}LSE linear function to fit Movie + User + Genres effects linear model Equation \ref {eq:EqModel4-2}}{28}{equations.11}%
+\contentsline {equations}{ \numberline {12}Genres specific effects Equation \ref {eq:EqModel4-3}}{29}{equations.12}%

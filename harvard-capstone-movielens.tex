@@ -123,7 +123,7 @@
 Movie Recommendation System\\
 A Harvard Capstone Project}
 \author{Manoj Bijoor}
-\date{March 16, 2021}
+\date{March 17, 2021}
 
 \begin{document}
 \maketitle
@@ -788,7 +788,8 @@ look}\label{genres-combinations-per-movie---a-closer-look}}
 The movielens data Table \ref{tbl:movielens_edx_avg_rating_time_effect}
 also has a genres column. This column includes every genre that applies
 to the movie. Some movies fall under several genres. We define a
-category as whatever combination appears in this column.
+category of genres as whatever combination of genres appears in this
+column, and refer to it as simply ``genres''.
 
 Here we keep only categories with more than 1,000 ratings. Then compute
 the average and standard error for each category, and plot these as
@@ -855,7 +856,6 @@ their corresponding predictors:
 \NormalTok{RMSE }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(true\_ratings, predicted\_ratings) \{}
     \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((true\_ratings }\SpecialCharTok{{-}}\NormalTok{ predicted\_ratings)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
 \NormalTok{\}}
-\FunctionTok{save}\NormalTok{(test\_index, }\AttributeTok{file =} \StringTok{"rdas/test\_index.rda"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -991,6 +991,14 @@ estimate \(\hat{b_{i}}\) is just the average of \(Y_{u,i}-\hat{\mu}\)
 for each movie \emph{i}. So we can compute them this way (we will drop
 the hat notation in the code to represent estimates going forward):
 
+%
+\refstepcounter{equations}
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Movie specific effects Equation \ref{eq:EqModel2-3}}\par
+
+\label{eq:EqModel2-3} \begin{equation}
+  b_{u} = \overline{y_{u,i} - \hat{\mu}}
+\end{equation}
+
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{mu }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(train\_set}\SpecialCharTok{$}\NormalTok{rating)}
@@ -1001,7 +1009,8 @@ the hat notation in the code to represent estimates going forward):
 
 \newpage
 
-We can see that these estimates vary substantially:
+We can see that these estimates vary substantially, see Figure
+\ref{fig:model_2}
 
 \begin{figure}
 \centering
@@ -1051,31 +1060,44 @@ Index & Method & RMSE\\
 \subsection{Model 3: User effects}\label{model-3-user-effects}}
 
 Let's compute \emph{b\_u} the average rating for user \emph{u} for those
-that have rated over 100 movies:
+that have rated over 100 movies, see Figure
+\ref{fig:average_ratings_for_users_who_have_rated_over_100_movies}
 
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{train\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{group\_by}\NormalTok{(userId) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_u =} \FunctionTok{mean}\NormalTok{(rating)) }\SpecialCharTok{\%\textgreater{}\%} 
     \FunctionTok{filter}\NormalTok{(}\FunctionTok{n}\NormalTok{() }\SpecialCharTok{\textgreater{}=} \DecValTok{100}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(b\_u)) }\SpecialCharTok{+} \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{30}\NormalTok{, }
-    \AttributeTok{color =} \StringTok{"black"}\NormalTok{)}
+    \AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Average rating for users who have rated over 100 movies"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
+\begin{figure}
+\centering
 \includegraphics{figures/ue_1-1.pdf}
+\caption{Average rating for users who have rated over 100
+movies\label{fig:average_ratings_for_users_who_have_rated_over_100_movies}}
+\end{figure}
 
 \newpage
 
 Let's compute \emph{b\_u} the average rating for user \emph{u} for those
-that have rated any movies:
+that have rated any movies, see Figure
+\ref{fig:average_ratings_for_users_who_have_rated_any_movies}
 
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{train\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{group\_by}\NormalTok{(userId) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_u =} \FunctionTok{mean}\NormalTok{(rating)) }\SpecialCharTok{\%\textgreater{}\%} 
-    \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(b\_u)) }\SpecialCharTok{+} \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{30}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{)}
+    \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(b\_u)) }\SpecialCharTok{+} \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{30}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+} 
+    \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Average rating for users who have rated any movies"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
+\begin{figure}
+\centering
 \includegraphics{figures/ue_2-1.pdf}
+\caption{Average rating for users who have rated any
+movies\label{fig:average_ratings_for_users_who_have_rated_any_movies}}
+\end{figure}
 
 Notice that there is substantial variability across users as well: some
 users are very cranky and others love every movie. This implies that a
@@ -1095,7 +1117,7 @@ where \(b_{u}\) is a user-specific effect. Now if a cranky user
 effects counter each other and we may be able to correctly predict that
 this user gave this great movie a 3 rather than a 5.
 
-To fit this model, we could again use \texttt{lm()} as shown in Equation
+To fit this model, we could again use lm() as shown in Equation
 \ref{eq:EqModel3-2}:
 
 %
@@ -1111,12 +1133,31 @@ compute an approximation by computing \(\hat{\mu}\) and \(\hat{b_{i}}\)
 and estimating \(\hat{b_{u}}\) as the average of
 \(y_{u,i}-\hat{\mu}-\hat{b_{i}}\):
 
+%
+\refstepcounter{equations}
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}User specific effects Equation \ref{eq:EqModel3-3}}\par
+
+\label{eq:EqModel3-3} \begin{equation}
+  b_{u} = \overline{y_{u,i} - \hat{\mu} - \hat{b_{i}}}
+\end{equation}
+
+\newpage
+
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{user\_avgs }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }\AttributeTok{by =} \StringTok{"movieId"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
     \FunctionTok{group\_by}\NormalTok{(userId) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_u =} \FunctionTok{mean}\NormalTok{(rating }\SpecialCharTok{{-}}\NormalTok{ mu }\SpecialCharTok{{-}}\NormalTok{ b\_i))}
 \end{Highlighting}
 \end{Shaded}
+
+We can see that these estimates vary substantially, see Figure
+\ref{fig:model_3}
+
+\begin{figure}
+\centering
+\includegraphics{figures/ue_4-1.pdf}
+\caption{User effect or bias distribution\label{fig:model_3}}
+\end{figure}
 
 We can now construct predictors and see how much the RMSE improves:
 
@@ -1140,7 +1181,7 @@ Let's add the user effects model to our results table to get Table
 
 \begin{table}[H]
 
-\caption{\label{tab:ue_5}RMSE Results Model 1-3\label{tbl:rmse_results_model_1-3}}
+\caption{\label{tab:ue_6}RMSE Results Model 1-3\label{tbl:rmse_results_model_1-3}}
 \centering
 \fontsize{7}{9}\selectfont
 \begin{tabular}[t]{llr}
@@ -1150,6 +1191,134 @@ Index & Method & RMSE\\
 1 & Just the average & 1.0599043\\
 2 & Movie Effect Model & 0.9437429\\
 3 & Movie + User Effects Model & 0.8659320\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+
+\hypertarget{model-4-genre-effects}{%
+\subsection{Model 4: Genre effects}\label{model-4-genre-effects}}
+
+The movielens data also has a genres column. This column includes every
+genre that applies to the movie. Some movies fall under several genres.
+Define a category of genres as whatever combination of genres appears in
+this column. We will refer to this category as simply ``genres''.
+
+There is strong evidence of a genre effect as we have shown earlier in
+Figure \ref{fig:genres_error_bar_plots}, and in this section below in
+Figure \ref{fig:model_4}. If we define \(g_{u,i}\) as the genre for
+\emph{u} user's rating of movie \emph{i}, then the following model as
+shown in Equation \ref{eq:EqModel4-1} is most appropriate:
+
+%
+\refstepcounter{equations}
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Model 4: Movie + User + Genre effects linear model Equation \ref{eq:EqModel4-1}}\par
+
+\label{eq:EqModel4-1} \begin{equation}
+  Y_{u,i} = \mu + b_{i} + b_{u} + \sum_{k=1}^Kx_{u,i}\beta_k + \epsilon_{u,i}
+\end{equation}
+
+\begin{center}
+with $x_{u,i}^k=1$ if $g_{u,i}$ is genre *k*
+\end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{train\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{group\_by}\NormalTok{(genres) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{summarize}\NormalTok{(}\AttributeTok{mu\_g =} \FunctionTok{mean}\NormalTok{(rating)) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(mu\_g)) }\SpecialCharTok{+} \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{30}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+} 
+    \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Average rating for movies of category genres"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}
+\centering
+\includegraphics{figures/ge_1-1.pdf}
+\caption{Average rating for movies of category
+genres\label{fig:average_ratings_for_movies_of_category_genres}}
+\end{figure}
+
+To fit this model, we could again use the lm() function as shown in
+Equation \ref{eq:EqModel4-2}:
+
+%
+\refstepcounter{equations}
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}LSE linear function to fit Movie + User + Genres effects linear model Equation \ref{eq:EqModel4-2}}\par
+
+\label{eq:EqModel4-2} \begin{equation}
+  fit \leftarrow lm(rating \; \sim \; as.factor(movieId) + as.factor(userId) + as.factor(genres), \: data = train\_{}set)
+\end{equation}
+
+but, for the reasons described earlier, we won't. Instead, we will
+compute an approximation by computing \(\hat{\mu}\), \(\hat{b_{i}}\),
+\(\hat{b_{u}}\) and estimating \(\hat{b_{g}}\) as the average of
+\(y_{u,i}-\hat{\mu}-\hat{b_{i}}-\hat{b_{u}}\) where:\\
+
+%
+\refstepcounter{equations}
+\addcontentsline{equ}{equations}{ \protect\numberline{\theequations}Genres specific effects Equation \ref{eq:EqModel4-3}}\par
+
+\label{eq:EqModel4-3} \begin{equation}
+  b_{g} = \sum_{k=1}^Kx_{u,i}\beta_k
+\end{equation}
+
+\begin{center}
+with $x_{u,i}^k=1$ if $g_{u,i}$ is genre *k*
+\end{center}
+
+where \(b_{g}\) is genre specific effect.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{genres\_avgs }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }\AttributeTok{by =} \StringTok{"movieId"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{left\_join}\NormalTok{(user\_avgs, }\AttributeTok{by =} \StringTok{"userId"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{group\_by}\NormalTok{(genres) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_g =} \FunctionTok{mean}\NormalTok{(rating }\SpecialCharTok{{-}}\NormalTok{ mu }\SpecialCharTok{{-}}\NormalTok{ b\_i }\SpecialCharTok{{-}}\NormalTok{ b\_u))}
+\end{Highlighting}
+\end{Shaded}
+
+We can see that these estimates vary substantially, see Figure
+\ref{fig:model_4}
+
+\begin{figure}
+\centering
+\includegraphics{figures/ge_5-1.pdf}
+\caption{Genres effect or bias distribution\label{fig:model_4}}
+\end{figure}
+
+We can now construct predictors and see how much the RMSE improves:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{predicted\_ratings\_model\_4 }\OtherTok{\textless{}{-}}\NormalTok{ test\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }
+    \AttributeTok{by =} \StringTok{"movieId"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{left\_join}\NormalTok{(user\_avgs, }\AttributeTok{by =} \StringTok{"userId"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{left\_join}\NormalTok{(genres\_avgs, }\AttributeTok{by =} \StringTok{"genres"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{mutate}\NormalTok{(}\AttributeTok{pred =}\NormalTok{ mu }\SpecialCharTok{+} 
+\NormalTok{    b\_i }\SpecialCharTok{+}\NormalTok{ b\_u }\SpecialCharTok{+}\NormalTok{ b\_g) }\SpecialCharTok{\%\textgreater{}\%}\NormalTok{ .}\SpecialCharTok{$}\NormalTok{pred}
+\NormalTok{(model\_4\_rmse }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(predicted\_ratings\_model\_4, test\_set}\SpecialCharTok{$}\NormalTok{rating))}
+\NormalTok{[}\DecValTok{1}\NormalTok{] }\FloatTok{0.8655941}
+\end{Highlighting}
+\end{Shaded}
+
+\newpage
+
+\hypertarget{results-table-model-1-4}{%
+\subsubsection{Results Table Model 1-4}\label{results-table-model-1-4}}
+
+Let's add the genres effects model to our results table to get Table
+\ref{tbl:rmse_results_model_1-4}
+
+\begin{table}[H]
+
+\caption{\label{tab:ge_7}RMSE Results Model 1-4\label{tbl:rmse_results_model_1-4}}
+\centering
+\fontsize{7}{9}\selectfont
+\begin{tabular}[t]{llr}
+\toprule
+Index & Method & RMSE\\
+\midrule
+1 & Just the average & 1.0599043\\
+2 & Movie Effect Model & 0.9437429\\
+3 & Movie + User Effects Model & 0.8659320\\
+4 & Movie + User + Genres Effects Model & 0.8655941\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1533,18 +1702,25 @@ report}\label{appendix-all-code-for-this-report}}
   \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_u =} \FunctionTok{mean}\NormalTok{(rating)) }\SpecialCharTok{\%\textgreater{}\%} 
   \FunctionTok{filter}\NormalTok{(}\FunctionTok{n}\NormalTok{()}\SpecialCharTok{\textgreater{}=}\DecValTok{100}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
   \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(b\_u)) }\SpecialCharTok{+} 
-  \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{30}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{)}
+  \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{30}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+} 
+  \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Average rating for users who have rated over 100 movies"}\NormalTok{)}
 \NormalTok{train\_set }\SpecialCharTok{\%\textgreater{}\%} 
   \FunctionTok{group\_by}\NormalTok{(userId) }\SpecialCharTok{\%\textgreater{}\%} 
   \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_u =} \FunctionTok{mean}\NormalTok{(rating)) }\SpecialCharTok{\%\textgreater{}\%} 
   \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(b\_u)) }\SpecialCharTok{+} 
-  \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{30}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{)}
+  \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{30}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+} 
+  \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Average rating for users who have rated any movies"}\NormalTok{)}
 \NormalTok{user\_avgs }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%} 
   \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}movieId\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
   \FunctionTok{group\_by}\NormalTok{(userId) }\SpecialCharTok{\%\textgreater{}\%}
   \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_u =} \FunctionTok{mean}\NormalTok{(rating }\SpecialCharTok{{-}}\NormalTok{ mu }\SpecialCharTok{{-}}\NormalTok{ b\_i))}
 
 \FunctionTok{save}\NormalTok{(user\_avgs, }\AttributeTok{file =} \StringTok{"rdas/user\_avgs.rda"}\NormalTok{)}
+\NormalTok{user\_avgs }\SpecialCharTok{\%\textgreater{}\%}  
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(b\_u)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{10}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+} 
+  \CommentTok{\# scale\_x\_log10() +  \# try with and without this line}
+  \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"User effect or bias distribution"}\NormalTok{)}
 \NormalTok{predicted\_ratings\_model\_3 }\OtherTok{\textless{}{-}}\NormalTok{ test\_set }\SpecialCharTok{\%\textgreater{}\%} 
   \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}movieId\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
   \FunctionTok{left\_join}\NormalTok{(user\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}userId\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
@@ -1562,6 +1738,70 @@ report}\label{appendix-all-code-for-this-report}}
 \FunctionTok{rm}\NormalTok{(model\_3\_rmse, predicted\_ratings\_model\_3)}
 \CommentTok{\# rmse\_results \%\textgreater{}\% knitr::kable()}
   \FunctionTok{kable}\NormalTok{(rmse\_results, }\StringTok{"latex"}\NormalTok{, }\AttributeTok{escape=}\ConstantTok{FALSE}\NormalTok{, }\AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{, }\AttributeTok{linesep=}\StringTok{""}\NormalTok{, }\AttributeTok{caption=}\StringTok{"RMSE Results Model 1{-}3}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{label\{tbl:rmse\_results\_model\_1{-}3\}"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{kable\_styling}\NormalTok{(}\AttributeTok{latex\_options=}\FunctionTok{c}\NormalTok{(}\StringTok{"HOLD\_position"}\NormalTok{), }\AttributeTok{font\_size=}\DecValTok{7}\NormalTok{)}
+\NormalTok{train\_set }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{group\_by}\NormalTok{(genres) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{summarize}\NormalTok{(}\AttributeTok{mu\_g =} \FunctionTok{mean}\NormalTok{(rating)) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(mu\_g)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{30}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+} 
+  \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Average rating for movies of category genres"}\NormalTok{)}
+\NormalTok{q8\_1 }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{group\_by}\NormalTok{(movieId) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarize}\NormalTok{(}\AttributeTok{n =} \FunctionTok{n}\NormalTok{(),}\AttributeTok{genres=}\NormalTok{genres[}\DecValTok{1}\NormalTok{])}
+
+\NormalTok{q8\_2 }\OtherTok{\textless{}{-}}\NormalTok{ q8\_1 }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{group\_by}\NormalTok{(genres) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{summarise}\NormalTok{(}\AttributeTok{nr=}\FunctionTok{sum}\NormalTok{(n)) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(nr}\SpecialCharTok{\textgreater{}}\DecValTok{1000}\NormalTok{) }
+
+\NormalTok{q8 }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{group\_by}\NormalTok{(genres) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{summarize}\NormalTok{(}\AttributeTok{n =} \FunctionTok{n}\NormalTok{(),}\AttributeTok{avg =} \FunctionTok{mean}\NormalTok{(rating), }\AttributeTok{se =} \FunctionTok{sd}\NormalTok{(rating)}\SpecialCharTok{/}\FunctionTok{sqrt}\NormalTok{(}\FunctionTok{n}\NormalTok{())) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{filter}\NormalTok{(n }\SpecialCharTok{\textgreater{}=} \DecValTok{1000}\NormalTok{) }
+
+\NormalTok{q8 }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{genres =} \FunctionTok{reorder}\NormalTok{(genres, avg)) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ genres, }\AttributeTok{y =}\NormalTok{ avg, }\AttributeTok{ymin =}\NormalTok{ avg }\SpecialCharTok{{-}} \DecValTok{2}\SpecialCharTok{*}\NormalTok{se, }\AttributeTok{ymax =}\NormalTok{ avg }\SpecialCharTok{+} \DecValTok{2}\SpecialCharTok{*}\NormalTok{se)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_point}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{geom\_errorbar}\NormalTok{() }\SpecialCharTok{+} 
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{axis.text.x =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{angle =} \DecValTok{90}\NormalTok{, }\AttributeTok{hjust =} \DecValTok{1}\NormalTok{))}
+
+\FunctionTok{mean}\NormalTok{(q8}\SpecialCharTok{$}\NormalTok{avg)}
+
+\FunctionTok{median}\NormalTok{(q8}\SpecialCharTok{$}\NormalTok{avg)}
+
+\FunctionTok{rm}\NormalTok{(q8\_1,q8\_2,q8)}
+\NormalTok{genres\_avgs }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}movieId\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{left\_join}\NormalTok{(user\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}userId\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(genres) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarize}\NormalTok{(}\AttributeTok{b\_g =} \FunctionTok{mean}\NormalTok{(rating }\SpecialCharTok{{-}}\NormalTok{ mu }\SpecialCharTok{{-}}\NormalTok{ b\_i }\SpecialCharTok{{-}}\NormalTok{ b\_u))}
+\NormalTok{genres\_avgs }\SpecialCharTok{\%\textgreater{}\%}  
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(b\_g)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{10}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+} 
+  \CommentTok{\# scale\_x\_log10() +  \# try with and without this line}
+  \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Genres effect or bias distribution"}\NormalTok{)}
+\NormalTok{predicted\_ratings\_model\_4 }\OtherTok{\textless{}{-}}\NormalTok{ test\_set }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{left\_join}\NormalTok{(movie\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}movieId\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{left\_join}\NormalTok{(user\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}userId\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{left\_join}\NormalTok{(genres\_avgs, }\AttributeTok{by=}\StringTok{\textquotesingle{}genres\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{pred =}\NormalTok{ mu }\SpecialCharTok{+}\NormalTok{ b\_i }\SpecialCharTok{+}\NormalTok{ b\_u }\SpecialCharTok{+}\NormalTok{ b\_g) }\SpecialCharTok{\%\textgreater{}\%} 
+\NormalTok{  .}\SpecialCharTok{$}\NormalTok{pred}
+
+\NormalTok{(model\_4\_rmse }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(predicted\_ratings\_model\_4, test\_set}\SpecialCharTok{$}\NormalTok{rating))}
+
+\FunctionTok{save}\NormalTok{(genres\_avgs, }\AttributeTok{file =} \StringTok{"rdas/genres\_avgs.rda"}\NormalTok{)}
+\FunctionTok{save}\NormalTok{(predicted\_ratings\_model\_4, }\AttributeTok{file =} \StringTok{"rdas/predicted\_ratings\_model\_4.rda"}\NormalTok{)}
+\FunctionTok{save}\NormalTok{(model\_4\_rmse, }\AttributeTok{file =} \StringTok{"rdas/model\_4\_rmse.rda"}\NormalTok{)}
+
+\NormalTok{rmse\_results }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(rmse\_results,}
+                          \FunctionTok{tibble}\NormalTok{(}\AttributeTok{Index =} \StringTok{"4"}\NormalTok{, }\AttributeTok{Method=}\StringTok{"Movie + User + Genres Effects Model"}\NormalTok{,  }
+                                 \AttributeTok{RMSE =}\NormalTok{ model\_4\_rmse))}
+
+\FunctionTok{save}\NormalTok{(rmse\_results, }\AttributeTok{file =} \StringTok{"rdas/rmse\_results.rda"}\NormalTok{)}
+
+\FunctionTok{rm}\NormalTok{(model\_4\_rmse, predicted\_ratings\_model\_4)}
+\CommentTok{\# rmse\_results \%\textgreater{}\% knitr::kable()}
+  \FunctionTok{kable}\NormalTok{(rmse\_results, }\StringTok{"latex"}\NormalTok{, }\AttributeTok{escape=}\ConstantTok{FALSE}\NormalTok{, }\AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{, }\AttributeTok{linesep=}\StringTok{""}\NormalTok{, }\AttributeTok{caption=}\StringTok{"RMSE Results Model 1{-}4}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{label\{tbl:rmse\_results\_model\_1{-}4\}"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
     \FunctionTok{kable\_styling}\NormalTok{(}\AttributeTok{latex\_options=}\FunctionTok{c}\NormalTok{(}\StringTok{"HOLD\_position"}\NormalTok{), }\AttributeTok{font\_size=}\DecValTok{7}\NormalTok{)}
 \NormalTok{    knitr}\SpecialCharTok{::}\FunctionTok{knit\_exit}\NormalTok{()}
 \FunctionTok{options}\NormalTok{(}\AttributeTok{tinytex.verbose =} \ConstantTok{TRUE}\NormalTok{)}

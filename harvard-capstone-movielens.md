@@ -2,7 +2,7 @@
 title: "Movielens  \n Movie Recommendation System  \n A Harvard Capstone Project"
 author: "Manoj Bijoor"
 email: manoj.bijoor@gmail.com
-date: "March 16, 2021"
+date: "March 17, 2021"
 output: 
   pdf_document: 
     latex_engine: pdflatex
@@ -542,7 +542,7 @@ userId & movieId & rating & title & genres & rating\_date & movie\_dt & date & a
 \newpage
 #### Genres combinations per movie - a closer look   
 
-The movielens data Table \ref{tbl:movielens_edx_avg_rating_time_effect} also has a genres column. This column includes every genre that applies to the movie. Some movies fall under several genres. We define a category as whatever combination appears in this column. 
+The movielens data Table \ref{tbl:movielens_edx_avg_rating_time_effect} also has a genres column. This column includes every genre that applies to the movie. Some movies fall under several genres. We define a category of genres as whatever combination of genres appears in this column, and refer to it as simply "genres". 
 
 Here we keep only categories with more than 1,000 ratings. Then compute the average and standard error for each category, and plot these as error bar plots. See Figure \ref{fig:genres_error_bar_plots} : 
 
@@ -585,7 +585,6 @@ Let's write a function that computes the RMSE for vectors of ratings and their c
 RMSE <- function(true_ratings, predicted_ratings) {
     sqrt(mean((true_ratings - predicted_ratings)^2))
 }
-save(test_index, file = "rdas/test_index.rda")
 ```
 
 \newpage
@@ -685,7 +684,13 @@ Because there are thousands of $b_{i}$ as each movie gets one, the lm() function
 will be very slow here. We therefore will not run the code above.
 
 But in this particular situation, we know that the least squares estimate 
-$\hat{b_{i}}$ is just the average of $Y_{u,i}-\hat{\mu}$ for each movie *i*. So we can compute them this way (we will drop the hat notation in the code to represent estimates going forward):   
+$\hat{b_{i}}$ is just the average of $Y_{u,i}-\hat{\mu}$ for each movie *i*. So we can compute them this way (we will drop the hat notation in the code to represent estimates going forward): 
+
+\equations{Movie specific effects Equation \ref{eq:EqModel2-3}}
+\label{eq:EqModel2-3}
+\begin{equation}
+  b_{u} = \overline{y_{u,i} - \hat{\mu}}
+\end{equation}
 
 
 ```r
@@ -695,7 +700,7 @@ movie_avgs <- train_set %>% group_by(movieId) %>% summarize(b_i = mean(rating -
 ```
 
 \newpage
-We can see that these estimates vary substantially:
+We can see that these estimates vary substantially, see Figure \ref{fig:model_2}
 
 ![Movie effect or bias distribution\label{fig:model_2}](figures/m_2_3-1.pdf) 
 
@@ -732,27 +737,28 @@ Index & Method & RMSE\\
 
 \newpage
 ## Model 3: User effects
-Let's compute *b_u* the average rating for user *u* for those that have rated over 100 movies:
+Let's compute *b_u* the average rating for user *u* for those that have rated over 100 movies, see Figure \ref{fig:average_ratings_for_users_who_have_rated_over_100_movies}
 
 
 ```r
 train_set %>% group_by(userId) %>% summarize(b_u = mean(rating)) %>% 
     filter(n() >= 100) %>% ggplot(aes(b_u)) + geom_histogram(bins = 30, 
-    color = "black")
+    color = "black") + ggtitle("Average rating for users who have rated over 100 movies")
 ```
 
-![](figures/ue_1-1.pdf)<!-- --> 
+![Average rating for users who have rated over 100 movies\label{fig:average_ratings_for_users_who_have_rated_over_100_movies}](figures/ue_1-1.pdf) 
 
 \newpage
-Let's compute *b_u* the average rating for user *u* for those that have rated any movies:
+Let's compute *b_u* the average rating for user *u* for those that have rated any movies, see Figure \ref{fig:average_ratings_for_users_who_have_rated_any_movies}
 
 
 ```r
 train_set %>% group_by(userId) %>% summarize(b_u = mean(rating)) %>% 
-    ggplot(aes(b_u)) + geom_histogram(bins = 30, color = "black")
+    ggplot(aes(b_u)) + geom_histogram(bins = 30, color = "black") + 
+    ggtitle("Average rating for users who have rated any movies")
 ```
 
-![](figures/ue_2-1.pdf)<!-- --> 
+![Average rating for users who have rated any movies\label{fig:average_ratings_for_users_who_have_rated_any_movies}](figures/ue_2-1.pdf) 
 
 Notice that there is substantial variability across users as well: some users are very cranky and others love every movie. This implies that a further improvement to our model may be as shown in Equation \ref{eq:EqModel3-1}:
 
@@ -766,7 +772,7 @@ Notice that there is substantial variability across users as well: some users ar
 
 where $b_{u}$ is a user-specific effect. Now if a cranky user (negative $b_{u}$) rates a great movie (positive $b_{i}$), the effects counter each other and we may be able to correctly predict that this user gave this great movie a 3 rather than a 5.
 
-To fit this model, we could again use `lm()` as shown in Equation \ref{eq:EqModel3-2}:
+To fit this model, we could again use lm() as shown in Equation \ref{eq:EqModel3-2}:
 
 <!-- ```{r, ue_3, echo=TRUE, eval=FALSE} -->
 <!-- fit <- lm(rating ~ as.factor(movieId) + as.factor(userId), data = train_set) -->
@@ -780,11 +786,22 @@ To fit this model, we could again use `lm()` as shown in Equation \ref{eq:EqMode
 
 but, for the reasons described earlier, we won't. Instead, we will compute an approximation by computing $\hat{\mu}$ and $\hat{b_{i}}$ and estimating $\hat{b_{u}}$ as the average of $y_{u,i}-\hat{\mu}-\hat{b_{i}}$:
 
+\equations{User specific effects Equation \ref{eq:EqModel3-3}}
+\label{eq:EqModel3-3}
+\begin{equation}
+  b_{u} = \overline{y_{u,i} - \hat{\mu} - \hat{b_{i}}}
+\end{equation}
+
+\newpage
 
 ```r
 user_avgs <- train_set %>% left_join(movie_avgs, by = "movieId") %>% 
     group_by(userId) %>% summarize(b_u = mean(rating - mu - b_i))
 ```
+
+We can see that these estimates vary substantially, see Figure \ref{fig:model_3}
+
+![User effect or bias distribution\label{fig:model_3}](figures/ue_4-1.pdf) 
 
 We can now construct predictors and see how much the RMSE improves:
 
@@ -803,7 +820,7 @@ Let's add the user effects model to our results table to get Table \ref{tbl:rmse
 
 \begin{table}[H]
 
-\caption{\label{tab:ue_5}RMSE Results Model 1-3\label{tbl:rmse_results_model_1-3}}
+\caption{\label{tab:ue_6}RMSE Results Model 1-3\label{tbl:rmse_results_model_1-3}}
 \centering
 \fontsize{7}{9}\selectfont
 \begin{tabular}[t]{llr}
@@ -818,12 +835,113 @@ Index & Method & RMSE\\
 \end{table}
 
 \newpage
+## Model 4: Genre effects
+The movielens data also has a genres column. This column includes every genre that applies to the movie. Some movies fall under several genres. Define a category of genres as whatever combination of genres appears in this column. We will refer to this category as simply "genres".
+
+There is strong evidence of a genre effect as we have shown earlier in Figure \ref{fig:genres_error_bar_plots}, and in this section below in Figure \ref{fig:model_4}. If we define $g_{u,i}$ as the genre for *u* user's rating of movie *i*, then the following model as shown in Equation \ref{eq:EqModel4-1} is most appropriate:   
+
+<!-- $$Y_{u,i}=\mu+b_{i}+b_{u}+\sum_{k=1}^Kx_{u,i}\beta_k+\epsilon_{u,i}$$ -->
+<!-- with $x_{u,i}^k=1$ if $g_{u,i}$ is genre *k* -->
+
+\equations{Model 4: Movie + User + Genre effects linear model Equation \ref{eq:EqModel4-1}}
+\label{eq:EqModel4-1}
+\begin{equation}
+  Y_{u,i} = \mu + b_{i} + b_{u} + \sum_{k=1}^Kx_{u,i}\beta_k + \epsilon_{u,i}
+\end{equation}
+
+\begin{center}
+with $x_{u,i}^k=1$ if $g_{u,i}$ is genre *k*
+\end{center}
+
+
+```r
+train_set %>% group_by(genres) %>% summarize(mu_g = mean(rating)) %>% 
+    ggplot(aes(mu_g)) + geom_histogram(bins = 30, color = "black") + 
+    ggtitle("Average rating for movies of category genres")
+```
+
+![Average rating for movies of category genres\label{fig:average_ratings_for_movies_of_category_genres}](figures/ge_1-1.pdf) 
+
+
+
+To fit this model, we could again use the lm() function as shown in Equation \ref{eq:EqModel4-2}:
+
+<!-- ```{r, ge_3, echo=TRUE, eval=FALSE} -->
+<!-- fit <- lm(rating ~ as.factor(movieId) + as.factor(userId) + as.factor(genres), data = train_set) -->
+<!-- ``` -->
+
+\equations{LSE linear function to fit Movie + User + Genres effects linear model Equation \ref{eq:EqModel4-2}}
+\label{eq:EqModel4-2}
+\begin{equation}
+  fit \leftarrow lm(rating \; \sim \; as.factor(movieId) + as.factor(userId) + as.factor(genres), \: data = train\_{}set)
+\end{equation}
+
+but, for the reasons described earlier, we won't. Instead, we will compute an approximation by computing $\hat{\mu}$, $\hat{b_{i}}$, $\hat{b_{u}}$ and estimating $\hat{b_{g}}$ as the average of $y_{u,i}-\hat{\mu}-\hat{b_{i}}-\hat{b_{u}}$ where:  
+<!-- $$b_{g}=\sum_{k=1}^Kx_{u,i}\beta_k$$ -->
+
+\equations{Genres specific effects Equation \ref{eq:EqModel4-3}}
+\label{eq:EqModel4-3}
+\begin{equation}
+  b_{g} = \sum_{k=1}^Kx_{u,i}\beta_k
+\end{equation}
+
+\begin{center}
+with $x_{u,i}^k=1$ if $g_{u,i}$ is genre *k*
+\end{center}
+
+where $b_{g}$ is genre specific effect.
+
+
+```r
+genres_avgs <- train_set %>% left_join(movie_avgs, by = "movieId") %>% 
+    left_join(user_avgs, by = "userId") %>% group_by(genres) %>% 
+    summarize(b_g = mean(rating - mu - b_i - b_u))
+```
+
+<!-- \newpage -->
+We can see that these estimates vary substantially, see Figure \ref{fig:model_4}
+
+![Genres effect or bias distribution\label{fig:model_4}](figures/ge_5-1.pdf) 
+
+We can now construct predictors and see how much the RMSE improves:
+
+
+```r
+predicted_ratings_model_4 <- test_set %>% left_join(movie_avgs, 
+    by = "movieId") %>% left_join(user_avgs, by = "userId") %>% 
+    left_join(genres_avgs, by = "genres") %>% mutate(pred = mu + 
+    b_i + b_u + b_g) %>% .$pred
+(model_4_rmse <- RMSE(predicted_ratings_model_4, test_set$rating))
+[1] 0.8655941
+```
+
+\newpage
+### Results Table Model 1-4
+
+Let's add the genres effects model to our results table to get Table \ref{tbl:rmse_results_model_1-4}
+
+\begin{table}[H]
+
+\caption{\label{tab:ge_7}RMSE Results Model 1-4\label{tbl:rmse_results_model_1-4}}
+\centering
+\fontsize{7}{9}\selectfont
+\begin{tabular}[t]{llr}
+\toprule
+Index & Method & RMSE\\
+\midrule
+1 & Just the average & 1.0599043\\
+2 & Movie Effect Model & 0.9437429\\
+3 & Movie + User Effects Model & 0.8659320\\
+4 & Movie + User + Genres Effects Model & 0.8655941\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 
 <!-- ```{r knitr_knit_exit} -->
 <!-- 	knitr::knit_exit() -->
 <!-- ``` -->
-
+\newpage
 # Results
 
 ---  
@@ -1195,18 +1313,25 @@ train_set %>%
   summarize(b_u = mean(rating)) %>% 
   filter(n()>=100) %>%
   ggplot(aes(b_u)) + 
-  geom_histogram(bins = 30, color = "black")
+  geom_histogram(bins = 30, color = "black") + 
+  ggtitle("Average rating for users who have rated over 100 movies")
 train_set %>% 
   group_by(userId) %>% 
   summarize(b_u = mean(rating)) %>% 
   ggplot(aes(b_u)) + 
-  geom_histogram(bins = 30, color = "black")
+  geom_histogram(bins = 30, color = "black") + 
+  ggtitle("Average rating for users who have rated any movies")
 user_avgs <- train_set %>% 
   left_join(movie_avgs, by='movieId') %>%
   group_by(userId) %>%
   summarize(b_u = mean(rating - mu - b_i))
 
 save(user_avgs, file = "rdas/user_avgs.rda")
+user_avgs %>%  
+  ggplot(aes(b_u)) + 
+  geom_histogram(bins = 10, color = "black") + 
+  # scale_x_log10() +  # try with and without this line
+  ggtitle("User effect or bias distribution")
 predicted_ratings_model_3 <- test_set %>% 
   left_join(movie_avgs, by='movieId') %>%
   left_join(user_avgs, by='userId') %>%
@@ -1224,6 +1349,70 @@ save(rmse_results, file = "rdas/rmse_results.rda")
 rm(model_3_rmse, predicted_ratings_model_3)
 # rmse_results %>% knitr::kable()
   kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Model 1-3\\label{tbl:rmse_results_model_1-3}") %>%
+    kable_styling(latex_options=c("HOLD_position"), font_size=7)
+train_set %>% 
+  group_by(genres) %>% 
+  summarize(mu_g = mean(rating)) %>% 
+  ggplot(aes(mu_g)) + 
+  geom_histogram(bins = 30, color = "black") + 
+  ggtitle("Average rating for movies of category genres")
+q8_1 <- train_set %>% 
+  group_by(movieId) %>%
+  summarize(n = n(),genres=genres[1])
+
+q8_2 <- q8_1 %>% group_by(genres) %>% 
+  summarise(nr=sum(n)) %>% 
+  filter(nr>1000) 
+
+q8 <- train_set %>% 
+  group_by(genres) %>% 
+  summarize(n = n(),avg = mean(rating), se = sd(rating)/sqrt(n())) %>%
+  filter(n >= 1000) 
+
+q8 %>% 
+  mutate(genres = reorder(genres, avg)) %>% 
+  ggplot(aes(x = genres, y = avg, ymin = avg - 2*se, ymax = avg + 2*se)) + 
+  geom_point() +
+  geom_errorbar() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+mean(q8$avg)
+
+median(q8$avg)
+
+rm(q8_1,q8_2,q8)
+genres_avgs <- train_set %>% 
+  left_join(movie_avgs, by='movieId') %>% 
+  left_join(user_avgs, by='userId') %>%
+  group_by(genres) %>%
+  summarize(b_g = mean(rating - mu - b_i - b_u))
+genres_avgs %>%  
+  ggplot(aes(b_g)) + 
+  geom_histogram(bins = 10, color = "black") + 
+  # scale_x_log10() +  # try with and without this line
+  ggtitle("Genres effect or bias distribution")
+predicted_ratings_model_4 <- test_set %>% 
+  left_join(movie_avgs, by='movieId') %>% 
+  left_join(user_avgs, by='userId') %>% 
+  left_join(genres_avgs, by='genres') %>% 
+  mutate(pred = mu + b_i + b_u + b_g) %>% 
+  .$pred
+
+(model_4_rmse <- RMSE(predicted_ratings_model_4, test_set$rating))
+
+save(genres_avgs, file = "rdas/genres_avgs.rda")
+save(predicted_ratings_model_4, file = "rdas/predicted_ratings_model_4.rda")
+save(model_4_rmse, file = "rdas/model_4_rmse.rda")
+
+rmse_results <- bind_rows(rmse_results,
+                          tibble(Index = "4", Method="Movie + User + Genres Effects Model",  
+                                 RMSE = model_4_rmse))
+
+save(rmse_results, file = "rdas/rmse_results.rda")
+
+rm(model_4_rmse, predicted_ratings_model_4)
+# rmse_results %>% knitr::kable()
+  kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Model 1-4\\label{tbl:rmse_results_model_1-4}") %>%
     kable_styling(latex_options=c("HOLD_position"), font_size=7)
 	knitr::knit_exit()
 options(tinytex.verbose = TRUE)
