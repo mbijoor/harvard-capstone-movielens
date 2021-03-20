@@ -240,6 +240,7 @@ if(!require(caret)) install.packages("caret", repos = "http://cran.us.r-project.
 if(!require(data.table)) install.packages("data.table", repos = "http://cran.us.r-project.org")
 if(!require(lubridate)) install.packages("caret", repos = "http://cran.us.r-project.org")
 if(!require(groupdata2)) install.packages("data.table", repos = "http://cran.us.r-project.org")
+if(!require(gridExtra)) install.packages("gridExtra", repos = "http://cran.us.r-project.org")
 
 # https://www.tidyverse.org/blog/2020/05/dplyr-1-0-0-last-minute-additions/
 options(dplyr.summarise.inform = FALSE)
@@ -504,10 +505,6 @@ edx_md %>% mutate(date = round_date(rating_date, unit = "week")) %>%
 
 The plot shows some evidence of a time effect. If we define $d_{u,i}$ as the day for user's *u* rating of movie *i*, then the following model given by Equation \ref{eq:EqTimeEffect} is most appropriate:
 
-<!-- $Y_{u,i}=\mu+b_{i}+b_{u}+f(d_{u,i})+\epsilon_{u,i}$, with f a smooth function of $d_{u,i}$ -->
-
-  <!-- Y_{u,i} = \mu + b_{i} + b_{u}  + f(d_{u,i})+ \epsilon_{u,i}\text{, with f a smooth function of }d_{u,i} -->
-
 \equations{Movie Rating Date-Time effect Equation \ref{eq:EqTimeEffect}}
 \label{eq:EqTimeEffect}
 \begin{equation}
@@ -594,7 +591,7 @@ we see that, on average, movies that came out after 1993 get more ratings. We al
 \newpage
 Among movies that came out in 1993 or later, we select the top 25 movies with the highest average number of ratings per year (n/year) and calculate the average rating of each of them. To calculate number of ratings per year, use 2018 as the end year. See Figure \ref{fig:25_movies_avg_and_most_ratings_per_year_post_1993} :
 
-```{r, md_3, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="25 Movies with the most ratings per year and their average rating post 1993\\label{fig:25_movies_avg_and_most_ratings_per_year_post_1993}"}
+```{r, md_2, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="25 Movies with the most ratings per year and their average rating post 1993\\label{fig:25_movies_avg_and_most_ratings_per_year_post_1993}"}
 res2_1993_plus <- edx_md %>%
   filter(movie_dt >= 1993) %>%
   group_by(movieId) %>%
@@ -618,7 +615,7 @@ We see that the most rated movies tend to have above average ratings. This is no
 We see that the more a movie is rated, the higher the rating.
 
 **Post-1993 movies**   
-```{r, md_4, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Movies average ratings versus ratings per year post  1993\\label{fig:movies_average_ratings_versus_ratings_per_year_post_1993}"}
+```{r, md_3, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Movies average ratings versus ratings per year post  1993\\label{fig:movies_average_ratings_versus_ratings_per_year_post_1993}"}
 res3 <- edx_md %>%
   filter(movie_dt >= 1993) %>%
   group_by(movieId) %>%
@@ -635,7 +632,7 @@ rm(res3)
 **Pre-1993 movies**  
 Compare Pre-1993 movies trend shown here in Figure \ref{fig:movies_average_ratings_versus_ratings_per_year_pre_1993} Versus Post-1993 movies trend in Figure \ref{fig:movies_average_ratings_versus_ratings_per_year_post_1993} above.
 
-```{r, md_5, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Movies average ratings versus ratings per year pre  1993\\label{fig:movies_average_ratings_versus_ratings_per_year_pre_1993}"}
+```{r, md_4, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Movies average ratings versus ratings per year pre  1993\\label{fig:movies_average_ratings_versus_ratings_per_year_pre_1993}"}
 res3_b <- edx_md %>%
   filter(movie_dt < 1993) %>%
   group_by(movieId) %>%
@@ -651,10 +648,10 @@ rm(res3_b)
 
 \newpage
 **_Modify edx data for Release Date Effect_**
-We stratify the movies by ratings per year and compute their average ratings based on what we learnt above, where we confirmed our intuition that more people watch popular movies. Finally edx data table looks as shown in Table \ref{tbl:movielens_edx_avg_release_date_effect} below. Figure \ref{fig:movies_average_ratings_versus_ratings_per_year_for_all_years_for_edx}"} is a plot of average ratings versus ratings per year showing an estimate of the trend.
+We stratify the movies by ratings per year and compute their average ratings based on what we learnt above, where we confirmed our intuition that more people watch popular movies. Finally edx data table looks as shown in Table \ref{tbl:movielens_edx_avg_release_date_effect} below. Figure \ref{fig:movies_average_ratings_versus_ratings_per_year_for_all_years_for_edx} is a plot of average ratings versus ratings per year showing an estimate of the trend.
 
 **_All Years_**
-```{r, md_6, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Movies average ratings versus ratings per year for all years for edx\\label{fig:movies_average_ratings_versus_ratings_per_year_for_all_years_for_edx}"}
+```{r, md_5, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Movies average ratings versus ratings per year for all years for edx\\label{fig:movies_average_ratings_versus_ratings_per_year_for_all_years_for_edx}"}
 res3_all_edx <- edx_md %>%
   group_by(movieId) %>%
   summarize(avg_rating_rel = mean(rating), n = n(), title=title[1], years=2018 - first(movie_dt)) %>%
@@ -666,7 +663,7 @@ save(res3_all_edx, file = "rdas/res3_all_edx.rda")
 ```
 
 
-```{r, md_7, echo=FALSE, eval=TRUE, comment=""}
+```{r, md_6, echo=FALSE, eval=TRUE, comment=""}
 res3_all_edx_2 <- res3_all_edx %>% select(-title)
 edx_md <- edx_md %>% left_join(res3_all_edx_2, by='movieId')
 save(edx_md, file = "rdas/edx_md.rda")
@@ -684,7 +681,7 @@ We need to do the above **_avg_rating_rel_effect_** update for the validation da
 Let's update the **_validation_** table to get Table \ref{tbl:movielens_validation_avg_release_date_effect} below:
 
 **_All Years_**
-```{r, md_8, echo=FALSE, eval=TRUE, comment=""}
+```{r, md_7, echo=FALSE, eval=TRUE, comment=""}
 res3_all_val <- validation_md %>%
   group_by(movieId) %>%
   summarize(avg_rating_rel = mean(rating), n = n(), title=title[1], years=2018 - first(movie_dt)) %>%
@@ -735,8 +732,6 @@ We define ${y_{u,i}}$ as the rating for movie *i* by user *u* and denote our pre
 
 The RMSE is then defined as Equation \ref{eq:EqLossFunction}:   
 
-<!-- $$RMSE=\sqrt{\frac{1}{N}\sum_{u,i}(\hat{y}_{u,i}-y_{u,i})^{2}}$$ -->  
-
 \equations{Loss function RMSE Equation \ref{eq:EqLossFunction}}
 \label{eq:EqLossFunction}
 \begin{equation}
@@ -765,8 +760,6 @@ rm(edx_md, test_index)
 ## Model 1: A first naive "mean" model  
 
 Let's start by building the simplest possible recommendation system: we predict the same rating for all movies regardless of user. A model that assumes the same rating for all movies and users with all the differences explained by random variation would look like Equation \ref{eq:EqModel1}: 
-
-<!-- $$Y_{i,i}=\mu+\epsilon_{u,i}$$ -->
 
 \equations{Model 1: A naive "mean" model Equation \ref{eq:EqModel1}}
 \label{eq:EqModel1}
@@ -825,8 +818,6 @@ rm(mu_hat,model_1_rmse)
 ## Model 2: Movie effects
 We know from experience that some movies are just generally rated higher than others. This intuition, that different movies are rated differently, is confirmed by data. We can augment our previous model by adding the term $b_{i}$ to represent average ranking for movie *i* and would look like Equation \ref{eq:EqModel2-1}: 
 
-<!-- $$Y_{u,i}=\mu+b_{i}+\epsilon_{u,i}$$ -->
-
 \equations{Model 2: Movie effects linear model Equation \ref{eq:EqModel2-1}}
 \label{eq:EqModel2-1}
 \begin{equation}
@@ -836,10 +827,6 @@ We know from experience that some movies are just generally rated higher than ot
 Statistics textbooks refer to the *b*s as effects or *"bias"*.
 
 We can again use least squares to estimate the $b_{i}$ in the following way to get Equation \ref{eq:EqModel2-2}: 
-
-<!-- ```{r, m_2_1, echo=TRUE, eval=FALSE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE} -->
-<!-- fit <- lm(rating ~ as.factor(userId), data = train_set) -->
-<!-- ``` -->
 
 \equations{LSE linear function to fit Movie effects linear model Equation \ref{eq:EqModel2-2}}
 \label{eq:EqModel2-2}
@@ -859,7 +846,7 @@ $\hat{b_{i}}$ is just the average of $Y_{u,i}-\hat{\mu}$ for each movie *i*. **_
   \hat{b_{i}} = \overline{y_{u,i} - \hat{\mu}}
 \end{equation}
 
-```{r, m_2_2, echo=1:2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE, tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, me_1, echo=1:2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7',  tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 mu <- mean(train_set$rating)
 
 movie_avgs <- train_set %>% 
@@ -873,7 +860,7 @@ save(movie_avgs, file = "rdas/movie_avgs.rda")
 \newpage
 We can see that these estimates vary substantially, see Figure \ref{fig:model_2}
 
-```{r, m_2_3, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Movie effect or bias distribution\\label{fig:model_2}"}
+```{r, me_2, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Movie effect or bias distribution\\label{fig:model_2}"}
 movie_avgs %>%  
   ggplot(aes(b_i)) + 
   geom_histogram(bins = 10, color = "black") + 
@@ -884,7 +871,7 @@ movie_avgs %>%
 Remember $\hat{\mu}$=3.5 so a $b_{i}$=1.5 implies a perfect five star rating.
 Let's see how much our prediction improves once we use $\hat{y_{u,i}}=\hat{\mu}+\hat{b_{i}}$:
 
-```{r, m_2_4, echo=1:2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE, tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, me_3, echo=1:2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7',  tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 predicted_ratings_model_2 <- mu + test_set %>% 
   left_join(movie_avgs, by='movieId') %>% 
   .$b_i
@@ -907,7 +894,7 @@ rm(model_2_rmse,predicted_ratings_model_2)
 
 Let's add the movie effects model to our results table to get Table \ref{tbl:rmse_results_model_1-2}
 
-```{r, m_2_5, echo=FALSE, eval=TRUE}
+```{r, me_4, echo=FALSE, eval=TRUE}
 # rmse_results %>% knitr::kable()
   kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Models 1-2\\label{tbl:rmse_results_model_1-2}") %>%
     kable_styling(latex_options=c("HOLD_position"), font_size=7)
@@ -917,7 +904,7 @@ Let's add the movie effects model to our results table to get Table \ref{tbl:rms
 ## Model 3: User effects
 Let's compute *b_u* the average rating for user *u* for those that have rated over 100 movies, see Figure \ref{fig:average_ratings_for_users_who_have_rated_over_100_movies}
 
-```{r, ue_1, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE, tidy.opts=list(blank = FALSE, width.cutoff = 60), fig.pos="h!", fig.cap="Average rating for users who have rated over 100 movies\\label{fig:average_ratings_for_users_who_have_rated_over_100_movies}"}
+```{r, ue_1, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7',  tidy.opts=list(blank = FALSE, width.cutoff = 60), fig.pos="h!", fig.cap="Average rating for users who have rated over 100 movies\\label{fig:average_ratings_for_users_who_have_rated_over_100_movies}"}
 train_set %>% 
   group_by(userId) %>% 
   summarize(b_u = mean(rating)) %>% 
@@ -930,7 +917,7 @@ train_set %>%
 \newpage
 Let's compute *b_u* the average rating for user *u* for those that have rated any movies, see Figure \ref{fig:average_ratings_for_users_who_have_rated_any_movies}
 
-```{r, ue_2, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE, tidy.opts=list(blank = FALSE, width.cutoff = 60), fig.pos="h!", fig.cap="Average rating for users who have rated any movies\\label{fig:average_ratings_for_users_who_have_rated_any_movies}"}
+```{r, ue_2, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7',  tidy.opts=list(blank = FALSE, width.cutoff = 60), fig.pos="h!", fig.cap="Average rating for users who have rated any movies\\label{fig:average_ratings_for_users_who_have_rated_any_movies}"}
 train_set %>% 
   group_by(userId) %>% 
   summarize(b_u = mean(rating)) %>% 
@@ -941,8 +928,6 @@ train_set %>%
 
 Notice that there is substantial variability across users as well: some users are very cranky and others love every movie. This implies that a further improvement to our model may be as shown in Equation \ref{eq:EqModel3-1}:
 
-<!-- $$Y_{u,i}=\mu+b_{i}+b_{u}+\epsilon_{u,i}$$ -->
-
 \equations{Model 3: Movie + User effects linear model Equation \ref{eq:EqModel3-1}}
 \label{eq:EqModel3-1}
 \begin{equation}
@@ -952,10 +937,6 @@ Notice that there is substantial variability across users as well: some users ar
 where $b_{u}$ is a user-specific effect. Now if a cranky user (negative $b_{u}$) rates a great movie (positive $b_{i}$), the effects counter each other and we may be able to correctly predict that this user gave this great movie a 3 rather than a 5.
 
 To fit this model, we could again use lm() as shown in Equation \ref{eq:EqModel3-2}:
-
-<!-- ```{r, ue_3, echo=TRUE, eval=FALSE} -->
-<!-- fit <- lm(rating ~ as.factor(movieId) + as.factor(userId), data = train_set) -->
-<!-- ``` -->
 
 \equations{LSE linear function to fit Movie + User effects linear model Equation \ref{eq:EqModel3-2}}
 \label{eq:EqModel3-2}
@@ -972,7 +953,7 @@ but, for the reasons described earlier, we won't. Instead, we will compute an ap
 \end{equation}
 
 \newpage
-```{r, ue_3, echo=1:1, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE, tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, ue_3, echo=1:1, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7',  tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 user_avgs <- train_set %>% 
   left_join(movie_avgs, by='movieId') %>%
   group_by(userId) %>%
@@ -993,7 +974,7 @@ user_avgs %>%
 
 We can now construct predictors and see how much the RMSE improves:
 
-```{r, ue_5, echo=1:2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE, tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, ue_5, echo=1:2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7',  tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 predicted_ratings_model_3 <- test_set %>% 
   left_join(movie_avgs, by='movieId') %>%
   left_join(user_avgs, by='userId') %>%
@@ -1027,9 +1008,6 @@ The movielens data also has a genres column. This column includes every genre th
 
 There is strong evidence of a genre effect as we have shown earlier in Figure \ref{fig:genres_error_bar_plots}, and in this section below in Figure \ref{fig:model_4}. If we define $g_{u,i}$ as the genre for *u* user's rating of movie *i*, then the following model as shown in Equation \ref{eq:EqModel4-1} is most appropriate:   
 
-<!-- $$Y_{u,i}=\mu+b_{i}+b_{u}+\sum_{k=1}^Kx_{u,i}\beta_k+\epsilon_{u,i}$$ -->
-<!-- with $x_{u,i}^k=1$ if $g_{u,i}$ is genre *k* -->
-
 \equations{Model 4: Movie + User + Genre effects linear model Equation \ref{eq:EqModel4-1}}
 \label{eq:EqModel4-1}
 \begin{equation}
@@ -1040,7 +1018,7 @@ There is strong evidence of a genre effect as we have shown earlier in Figure \r
 with $x_{u,i}^k=1$ if $g_{u,i}$ is genre *k*
 \end{center}
 
-```{r, ge_1, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE, tidy.opts=list(blank = FALSE, width.cutoff = 60), fig.pos="h!", fig.cap="Average rating for movies of category genres\\label{fig:average_ratings_for_movies_of_category_genres}"}
+```{r, ge_1, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7',  tidy.opts=list(blank = FALSE, width.cutoff = 60), fig.pos="h!", fig.cap="Average rating for movies of category genres\\label{fig:average_ratings_for_movies_of_category_genres}"}
 train_set %>% 
   group_by(genres) %>% 
   summarize(mu_g = mean(rating)) %>% 
@@ -1079,10 +1057,6 @@ rm(q8_1,q8_2,q8)
 
 To fit this model, we could again use the lm() function as shown in Equation \ref{eq:EqModel4-2}:
 
-<!-- ```{r, ge_3, echo=TRUE, eval=FALSE} -->
-<!-- fit <- lm(rating ~ as.factor(movieId) + as.factor(userId) + as.factor(genres), data = train_set) -->
-<!-- ``` -->
-
 \equations{LSE linear function to fit Movie + User + Genres effects linear model Equation \ref{eq:EqModel4-2}}
 \label{eq:EqModel4-2}
 \begin{equation}
@@ -1115,7 +1089,7 @@ with $x_{u,i}^k=1$ if $g_{u,i}$ is genre *k*
 
 where $\hat{b_{g}}$ is genre specific effect.
 
-```{r, ge_4, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE, tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, ge_3, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7',  tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 genres_avgs <- train_set %>% 
   left_join(movie_avgs, by='movieId') %>% 
   left_join(user_avgs, by='userId') %>%
@@ -1126,7 +1100,7 @@ genres_avgs <- train_set %>%
 <!-- \newpage -->
 We can see that these estimates vary substantially, see Figure \ref{fig:model_4}
 
-```{r, ge_5, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Genres effect or bias distribution\\label{fig:model_4}"}
+```{r, ge_4, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Genres effect or bias distribution\\label{fig:model_4}"}
 genres_avgs %>%  
   ggplot(aes(b_g)) + 
   geom_histogram(bins = 10, color = "black") + 
@@ -1136,7 +1110,7 @@ genres_avgs %>%
 
 We can now construct predictors and see how much the RMSE improves:
 
-```{r, ge_6, echo=1:2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE, tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, ge_5, echo=1:2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7',  tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 predicted_ratings_model_4 <- test_set %>% 
   left_join(movie_avgs, by='movieId') %>% 
   left_join(user_avgs, by='userId') %>% 
@@ -1164,7 +1138,7 @@ rm(model_4_rmse, predicted_ratings_model_4)
 
 Let's add the genres effects model to our results table to get Table \ref{tbl:rmse_results_model_1-4}
 
-```{r, ge_7, echo=FALSE, eval=TRUE}
+```{r, ge_6, echo=FALSE, eval=TRUE}
 # rmse_results %>% knitr::kable()
   kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Models 1-4\\label{tbl:rmse_results_model_1-4}") %>%
     kable_styling(latex_options=c("HOLD_position"), font_size=7)
@@ -1177,7 +1151,6 @@ The movielens dataset also includes a time stamp. This variable represents the t
 We computed the average rating for each week and plotted this average against day.   
 
 The plot shows some evidence of a time effect. If we define $d_{u,i}$ as the day for user's *u* rating of movie *i*, then the following updated model as shown in Equation \ref{eq:EqModel5-1} is most appropriate:   
-<!-- $$Y_{u,i}=\mu+b_{i}+b_{u}+\sum_{k=1}^Kx_{u,i}\beta_k+f(d_{u,i})+\epsilon_{u,i}$$    -->
 
 \equations{Model 5: Movie + User + Genre + Rating time effects linear model Equation \ref{eq:EqModel5-1}}
 \label{eq:EqModel5-1}
@@ -1191,9 +1164,6 @@ with f a smooth function of $d_{u,i}$
 
 To fit this model, we could again use lm() function as shown in Equation \ref{eq:EqModel5-2}:
 
-<!-- ```{r, rte_1, echo=TRUE, eval=FALSE} -->
-<!-- fit <- lm(rating ~ as.factor(movieId) + as.factor(userId) + as.factor(genres) + as.factor(date), data = train_set) -->
-<!-- ``` -->
 \equations{LSE linear function to fit Movie + User + Genres + Rating time effects linear model Equation \ref{eq:EqModel5-2}}
 \label{eq:EqModel5-2}
 \begin{equation}
@@ -1222,7 +1192,7 @@ where:
 
 where $\hat{b_{d}}$ is rating time specific effect.
 
-```{r, rte_2, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE, tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, rte_1, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7',  tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 time_effect_avgs <- train_set %>%
   left_join(movie_avgs, by='movieId') %>%
   left_join(user_avgs, by='userId') %>% 
@@ -1234,7 +1204,7 @@ time_effect_avgs <- train_set %>%
 \newpage
 We can see that these estimates vary substantially, see Figure \ref{fig:model_4}
 
-```{r, rte_3, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Rating time effect or bias distribution\\label{fig:model_5}"}
+```{r, rte_2, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Rating time effect or bias distribution\\label{fig:model_5}"}
 time_effect_avgs %>%  
   ggplot(aes(b_d)) + 
   geom_histogram(bins = 10, color = "black") + 
@@ -1244,7 +1214,7 @@ time_effect_avgs %>%
 
 We can now construct predictors and see how much the RMSE improves
 
-```{r, rte_4, echo=1:2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE, tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, rte_3, echo=1:2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7',  tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 predicted_ratings_model_5 <- test_set %>% 
   left_join(movie_avgs, by='movieId') %>% 
   left_join(user_avgs, by='userId') %>% 
@@ -1273,22 +1243,17 @@ rm(model_5_rmse, predicted_ratings_model_5)
 
 Let's add the Rating Time effects model to our results table to get Table \ref{tbl:rmse_results_model_1-5}
 
-```{r, rte_5, echo=FALSE, eval=TRUE}
+```{r, rte_4, echo=FALSE, eval=TRUE}
 # rmse_results %>% knitr::kable()
   kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Models 1-5\\label{tbl:rmse_results_model_1-5}") %>%
     kable_styling(latex_options=c("HOLD_position"), font_size=7)
 ```
 
 
-<!-- ```{r knitr_knit_exit} -->
-<!-- 	knitr::knit_exit() -->
-<!-- ``` -->
-
 \newpage
 ## Model 6: Release Date Effect
-The plots in Figures \ref{fig:ratings_movie_release_date_all_dates},  \ref{fig:25_movies_avg_and_most_ratings_per_year_post_1993}, \ref{fig:movies_average_ratings_versus_ratings_per_year_post_1993}, \ref{fig:movies_average_ratings_versus_ratings_per_year_pre_1993} above shows some evidence of a Release Date effect based on the when the movie was released and it's popularity given by the mean rating. If we define $arr_{r,i,y}$ as the average rating *r=mean(rating)* since release date *y=n_year* for movie *i* (in the formula for plots above), then the following updated model is most appropriate:   
-<!-- $$Y_{u,i}=\mu+b_{i}+b_{u}+\sum_{k=1}^Kx_{u,i}\beta_k+f(d_{u,i})+f(arr_{r,i,y})+\epsilon_{u,i}$$    -->
-<!-- with f a smooth function of $arr_{r,i,y}$ -->
+The plots in Figures \ref{fig:ratings_movie_release_date_all_dates},  \ref{fig:25_movies_avg_and_most_ratings_per_year_post_1993}, \ref{fig:movies_average_ratings_versus_ratings_per_year_post_1993}, \ref{fig:movies_average_ratings_versus_ratings_per_year_pre_1993}, \ref{fig:movies_average_ratings_versus_ratings_per_year_for_all_years_for_edx} above shows some evidence of a Release Date effect based on the when the movie was released and it's popularity given by the mean rating. If we define $arr_{r,i,y}$ as the average rating *r=mean(rating)* since release date *y=n_year* for movie *i* (in the formula for plots above), then the following updated model is most appropriate:   
+
 \equations{Model 6: Movie + User + Genre + Rating time + Release date effects linear model Equation \ref{eq:EqModel6-1}}
 \label{eq:EqModel6-1}
 \begin{equation}
@@ -1300,10 +1265,7 @@ with f a smooth function of $arr_{r,i,y}$
 \end{center}
 
 To fit this model, we could again use lm() function as shown in Equation \ref{eq:EqModel6-2}:
-<!-- ```{r, m5_rd_1, echo=TRUE, eval=FALSE} -->
-<!-- Sys.time() -->
-<!-- fit <- lm(rating ~ as.factor(movieId) + as.factor(userId) + as.factor(genres) + as.factor(date) + as.factor(movie_dt), data = edx_md2) -->
-<!-- ``` -->
+
 \equations{LSE linear function to fit Movie + User + Genres + Rating time + Release date effects linear model Equation \ref{eq:EqModel6-2}}
 \label{eq:EqModel6-2}
 \begin{equation}
@@ -1333,7 +1295,7 @@ where:
 
 where $\hat{b_{r}}$ is Release date specific effect.
 
-```{r, rde_2, echo=1:1, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy=TRUE, tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, rde_1, echo=1:1, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7',  tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 rel_effect_avgs <- train_set %>%
   left_join(movie_avgs, by='movieId') %>%
   left_join(user_avgs, by='userId') %>% 
@@ -1348,7 +1310,7 @@ save(rel_effect_avgs, file = "rdas/rel_effect_avgs.rda")
 \newpage
 We can see that these estimates vary substantially, see Figure \ref{fig:model_6}
 
-```{r, rde_3, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Release Date effect or bias distribution\\label{fig:model_6}"}
+```{r, rde_2, echo=FALSE, eval=TRUE, comment="", fig.pos="h!", fig.cap="Release Date effect or bias distribution\\label{fig:model_6}"}
 rel_effect_avgs %>%  
   ggplot(aes(b_r)) + 
   geom_histogram(bins = 10, color = "black") + 
@@ -1358,7 +1320,7 @@ rel_effect_avgs %>%
 
 We can now construct predictors and see how much the RMSE improves
 
-```{r, rde_4, echo=1:3, eval=TRUE, comment=""}
+```{r, rde_3, echo=1:3, eval=TRUE, comment=""}
 predicted_ratings_model_6 <- test_set %>% 
   left_join(movie_avgs, by='movieId') %>% 
   left_join(user_avgs, by='userId') %>% 
@@ -1387,7 +1349,7 @@ save(rmse_results, file = "rdas/rmse_results.rda")
 
 Let's add the Release Date effects model to our results table to get Table \ref{tbl:rmse_results_model_1-6}
 
-```{r, rde_5, echo=FALSE, eval=TRUE}
+```{r, rde_4, echo=FALSE, eval=TRUE}
 # rmse_results %>% knitr::kable()
   kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Models 1-6\\label{tbl:rmse_results_model_1-6}") %>%
     kable_styling(latex_options=c("HOLD_position"), font_size=7)
@@ -1397,10 +1359,10 @@ Let's add the Release Date effects model to our results table to get Table \ref{
 \newpage
 ## Regularization
 ### Motivation 
-Despite the large movie to movie variation, our improvement in RMSE are either relatively negligible or the results from the recommendations are strange. Let's explore where we made mistakes in our second model, using only movie effects $b_{i}$.   
+Despite the large movie to movie variation, our improvement in RMSE is either relatively negligible or the results from the recommendations are strange. Let's explore where we made mistakes in our second model, using only movie effects $b_{i}$.   
 
 Here are the **10 largest mistakes**
-```{r, reg_1_m_1, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7',  tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, reg_1, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7',  tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 test_set %>% 
   left_join(movie_avgs, by='movieId') %>%
   mutate(residual = rating - (mu + b_i)) %>%
@@ -1416,7 +1378,7 @@ test_set %>%
 These all seem like obscure movies, or in this case a repetition. Many of them have large predictions.   
 Let's look at the **top 10 worst and best movies** based on $\hat{b_{i}}$. First, let's create a database that connects 'movieId' to movie title
 
-```{r, reg_1_m_2, echo=2:2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, reg_2, echo=2:2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 load("rdas/edx.rda")
 movie_titles <- edx %>% 
   select(movieId, title) %>%
@@ -1427,7 +1389,7 @@ rm(edx)
 
 Here are the **10 best movies** according to our estimate
 
-```{r, reg_1_m_3, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, reg_3, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 movie_avgs %>% left_join(movie_titles, by="movieId") %>%
   arrange(desc(b_i)) %>% 
   slice(1:10)  %>% 
@@ -1439,7 +1401,7 @@ movie_avgs %>% left_join(movie_titles, by="movieId") %>%
 <!-- \newpage -->
 And here are the **10 worst movies**
 
-```{r, reg_1_m_4, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, reg_4, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 movie_avgs %>% left_join(movie_titles, by="movieId") %>%
   arrange(b_i) %>% 
   slice(1:10)  %>% 
@@ -1452,7 +1414,7 @@ They all seem to be quite obscure. Let's look at how often they are rated.
 
 **10 best movies**
 
-```{r, reg_1_m_5, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, reg_5, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 train_set %>% count(movieId) %>% 
   left_join(movie_avgs, by="movieId") %>%
   left_join(movie_titles, by="movieId") %>%
@@ -1463,7 +1425,7 @@ train_set %>% count(movieId) %>%
 
 **10 worst movies**
 
-```{r, reg_1_m_6, echo=TRUE, eval=TRUE, message=FALSE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, reg_6, echo=TRUE, eval=TRUE, message=FALSE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 train_set %>% count(movieId) %>% 
   left_join(movie_avgs) %>%
   left_join(movie_titles, by="movieId") %>%
@@ -1496,7 +1458,7 @@ Note that $\lambda$ is a tuning parameter. We will use cross-validation to choos
 
 **_Here we use only 1 fold_**
 
-```{r, cpt_1, echo=TRUE, eval=TRUE, comment=""}
+```{r, m7_1, echo=TRUE, eval=TRUE, comment=""}
 lambdas <- seq(0, 10, 0.25)
 mu <- mean(train_set$rating)
 just_the_sum <- train_set %>% 
@@ -1511,26 +1473,27 @@ rmses <- sapply(lambdas, function(l){
   return(RMSE(predicted_ratings, test_set$rating))
 })
 
-qplot(lambdas, rmses)  
 (lambda <- lambdas[which.min(rmses)])
+qplot(lambdas, rmses)  
 
 mu <- mean(train_set$rating)
 movie_reg_avgs <- train_set %>% 
   group_by(movieId) %>% 
   summarize(b_i = sum(rating - mu)/(n()+lambda), n_i = n()) 
 ```
-```{r, cpt_2, echo=FALSE, eval=TRUE}
+```{r, m7_2, echo=FALSE, eval=TRUE}
 rm(just_the_sum)
 ```
 
 To see how the estimates shrink, let's make a plot of the regularized estimates versus the least squares estimates.
 
-```{r, pls_2, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, m7_3, echo=FALSE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 tibble(original = movie_avgs$b_i, 
        regularlized = movie_reg_avgs$b_i, 
        n = movie_reg_avgs$n_i) %>%
   ggplot(aes(original, regularlized, size=sqrt(n))) + 
-  geom_point(shape=1, alpha=0.5)
+  geom_point(shape=1, alpha=0.5) + 
+  ggtitle("Movie Effect Reg")
 ```
 
 \newpage
@@ -1539,7 +1502,7 @@ Now, let's look at the **top 10 best movies based on the penalized estimates** $
 
 **Top 10 best movies**
 
-```{r, e_u_pls_1, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, m7_4, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 train_set %>%
   dplyr::count(movieId) %>% 
   left_join(movie_reg_avgs) %>%
@@ -1555,7 +1518,7 @@ These make much more sense! These movies are watched more and have more ratings.
 \newpage
 **Top 10 worst movies**
 
-```{r, e_u_pls_2, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, m7_5, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 train_set %>%
   dplyr::count(movieId) %>% 
   left_join(movie_reg_avgs) %>%
@@ -1567,10 +1530,9 @@ train_set %>%
     kable_styling(latex_options=c("HOLD_position"))
 ```
 
-
 **Improved our results**
 
-```{r, e_u_pls_3, echo=TRUE, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
+```{r, m7_6, echo=1:2, eval=TRUE, collapse = TRUE, comment="", highlight=TRUE, background='#F7F7F7', tidy.opts=list(blank = FALSE, width.cutoff = 60)}
 predicted_ratings_model_7 <- test_set %>% 
   left_join(movie_reg_avgs, by='movieId') %>%
   mutate(pred = mu + b_i) %>%
@@ -1578,8 +1540,10 @@ predicted_ratings_model_7 <- test_set %>%
 
 (model_7_rmse <- RMSE(predicted_ratings_model_7, test_set$rating))
 save(model_7_rmse, file = "rdas/model_7_rmse.rda")
-```
-```{r, e_u_pls_4, echo=FALSE, eval=TRUE}
+# 
+# ```
+# ```{r, e_u_pls_4, echo=FALSE, eval=TRUE}
+
 rmse_results <- bind_rows(rmse_results,
                           tibble(Index = "7", Method="Regularized Movie Effect Model - 1 fold CV",  
                                  RMSE = model_7_rmse))
@@ -1594,11 +1558,11 @@ rm(model_7_rmse, predicted_ratings_model_7, movie_reg_avgs, lambda)
 
 Let's add Regularization to our Model 1-2 results table to get Table \ref{tbl:rmse_results_model_1-7}
 
-```{r, e_u_pls_5, echo=FALSE, eval=TRUE}
+```{r, m7_7, echo=FALSE, eval=TRUE}
   kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Models 1-7\\label{tbl:rmse_results_model_1-7}") %>%
     kable_styling(latex_options=c("HOLD_position"), font_size=7)
 ```
-The penalized estimates provide a large improvement over the least squares estimates.
+The penalized estimates provide an improvement over the least squares estimates.
 
 
 \newpage
@@ -1612,7 +1576,7 @@ The estimates that minimize this can be found similarly to what we did above.
 
 Here **_we use 1-fold cross-validation_** to pick the optimal $\lambda$.   
 
-```{r, cpt_3, echo=TRUE, eval=TRUE, comment=""}
+```{r, m8_1, echo=TRUE, eval=TRUE, comment=""}
 lambdas <- seq(0, 10, 0.25)
 rmses <- sapply(lambdas, function(l){
   mu <- mean(train_set$rating)
@@ -1642,10 +1606,10 @@ qplot(lambdas, rmses)
 
 For the Movie + User + Genres model so far, the optimal $\lambda$ is
 
-```{r, cpt_4, echo=TRUE, eval=TRUE}
+```{r, m8_2, echo=TRUE, eval=TRUE}
 (lambda <- lambdas[which.min(rmses)])
 ```
-```{r, cpt_5, echo=FALSE, eval=TRUE}
+```{r, m8_3, echo=FALSE, eval=TRUE}
 save(rmses, file = "rdas/rmses8.rda")
 model_8_rmse <- min(rmses)
 save(model_8_rmse, file = "rdas/model_8_rmse.rda")
@@ -1666,7 +1630,7 @@ rm(lambda, lambdas, rmses)
 
 Let's add Regularization to our Model 1-4 results table to get Table \ref{tbl:rmse_results_model_1-8} and arrange in descending order of RMSE's
 
-```{r, cpt_6, echo=FALSE, eval=TRUE}
+```{r, m8_4, echo=FALSE, eval=TRUE}
   kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Models 1-8\\label{tbl:rmse_results_model_1-8}") %>%
     kable_styling(latex_options=c("HOLD_position"), font_size=7)
 ```
@@ -1676,35 +1640,35 @@ Let's add Regularization to our Model 1-4 results table to get Table \ref{tbl:rm
 ## Model 9 : Model 6 + Regularization: Choosing the penalty terms
 Let's add the penalty term to the model 6 **_using 1-fold CV_**
 
-```{r, reg_rd_1, echo=TRUE, eval=TRUE, comment=""}
+```{r, m9_1, echo=TRUE, eval=TRUE, comment=""}
 lambdas <- seq(0, 10, 0.25)
 rmses <- sapply(lambdas, function(l){
   mu <- mean(train_set$rating)
   b_i <- train_set %>%
     group_by(movieId) %>%
-    summarize(b_i = sum(rating - mu)/(n()+l))
+    summarize(b_i = sum(rating - mu)/(n()+l), n_i = n())
   b_u <- train_set %>% 
     left_join(b_i, by="movieId") %>%
     group_by(userId) %>%
-    summarize(b_u = sum(rating - b_i - mu)/(n()+l))
+    summarize(b_u = sum(rating - b_i - mu)/(n()+l), n_i = n())
   b_g <- train_set %>% 
     left_join(b_i, by='movieId') %>% 
     left_join(b_u, by='userId') %>%
     group_by(genres) %>% 
-    summarize(b_g = sum(rating - mu - b_i - b_u)/(n()+l))
+    summarize(b_g = sum(rating - mu - b_i - b_u)/(n()+l), n_i = n())
   b_d <- train_set %>%
     left_join(b_i, by='movieId') %>%
     left_join(b_u, by='userId') %>% 
     left_join(b_g, by = "genres") %>% 
     group_by(date) %>% 
-    summarize(b_d = sum(avg_rating - mu - b_i - b_u - b_g)/(n()+l))
+    summarize(b_d = sum(avg_rating - mu - b_i - b_u - b_g)/(n()+l), n_i = n())
   b_r <- train_set %>%
     left_join(b_i, by='movieId') %>%
     left_join(b_u, by='userId') %>% 
     left_join(b_g, by = "genres") %>% 
     left_join(b_d, by = "date") %>% 
     group_by(movieId) %>% 
-    summarize(b_r = sum(avg_rating_rel - mu - b_i - b_u - b_g - b_d)/(n()+l))
+    summarize(b_r = sum(avg_rating_rel - mu - b_i - b_u - b_g - b_d)/(n()+l), n_i = n())
 
   predicted_ratings <- test_set %>%
     left_join(b_i, by = "movieId") %>%
@@ -1718,11 +1682,80 @@ rmses <- sapply(lambdas, function(l){
   return(RMSE(predicted_ratings, test_set$rating))
 })
 
+(lambda <- lambdas[which.min(rmses)])
 qplot(lambdas, rmses)  
 
-(lambda <- lambdas[which.min(rmses)])
 ```
-```{r, reg_rd_2, echo=FALSE, eval=TRUE}
+
+\newpage
+To see how the estimates shrink, let's make a plot of the regularized estimates versus the least squares estimates.
+**_Here we use only 1 fold_**
+
+```{r, m9_2, echo=FALSE, eval=TRUE, comment=""}
+mu <- mean(train_set$rating)
+movie_reg_avgs <- train_set %>%
+    group_by(movieId) %>%
+    summarize(b_i = sum(rating - mu)/(n()+lambda), n_i = n())
+user_reg_avgs <- train_set %>% 
+    left_join(movie_avgs, by="movieId") %>%
+    group_by(userId) %>%
+    summarize(b_u = sum(rating - b_i - mu)/(n()+lambda), n_i = n())
+genres_reg_avgs <- train_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>% 
+    group_by(genres) %>% 
+    summarize(b_g = sum(rating - mu - b_i - b_u)/(n()+lambda), n_i = n())
+time_effect_reg_avgs <- train_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>% 
+  left_join(genres_avgs, by = "genres") %>% 
+    group_by(date) %>% 
+    summarize(b_d = sum(avg_rating - mu - b_i - b_u - b_g)/(n()+lambda), n_i = n())
+rel_effect_reg_avgs <- train_set %>%
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>% 
+  left_join(genres_avgs, by = "genres") %>% 
+  left_join(time_effect_avgs, by = "date") %>% 
+  group_by(movieId) %>% 
+  summarize(b_r = sum(avg_rating_rel - mu - b_i - b_u - b_g - b_d)/(n()+lambda), n_i = n())
+
+mp <- tibble(original = movie_avgs$b_i,
+       regularlized = movie_reg_avgs$b_i,
+       n = movie_reg_avgs$n_i) %>%
+  ggplot(aes(original, regularlized, size=sqrt(n))) +
+  geom_point(shape=1, alpha=0.5) + 
+  ggtitle("Movie Effect Reg")
+up <- tibble(original = user_avgs$b_u,
+       regularlized = user_reg_avgs$b_u,
+       n = user_reg_avgs$n_i) %>%
+  ggplot(aes(original, regularlized, size=sqrt(n))) +
+  geom_point(shape=1, alpha=0.5) + 
+  ggtitle("User Effect Reg")
+gp <- tibble(original = genres_avgs$b_g,
+       regularlized = genres_reg_avgs$b_g,
+       n = genres_reg_avgs$n_i) %>%
+  ggplot(aes(original, regularlized, size=sqrt(n))) +
+  geom_point(shape=1, alpha=0.5) + 
+  ggtitle("Genres Effect Reg")
+tp <- tibble(original = time_effect_avgs$b_d,
+       regularlized = time_effect_reg_avgs$b_d,
+       n = time_effect_reg_avgs$n_i) %>%
+  ggplot(aes(original, regularlized, size=sqrt(n))) +
+  geom_point(shape=1, alpha=0.5) + 
+  ggtitle("Rating time Effect Reg")
+rp <- tibble(original = rel_effect_avgs$b_r,
+       regularlized = rel_effect_reg_avgs$b_r,
+       n = rel_effect_reg_avgs$n_i) %>%
+  ggplot(aes(original, regularlized, size=sqrt(n))) +
+  geom_point(shape=1, alpha=0.5) + 
+  ggtitle("Release date Effect Reg")
+
+# require(gridExtra)
+grid.arrange(mp, up, gp, tp, rp, ncol=2)
+```
+
+
+```{r, m9_3, echo=FALSE, eval=TRUE}
 # save(rmses, file = "rmses.rda")
 save(rmses, file = "rdas/rmses9.rda")
 model_9_rmse <- min(rmses)
@@ -1736,7 +1769,7 @@ rmse_results <- rmse_results %>% arrange(desc(RMSE))
 save(rmse_results, file = "rdas/rmse_results.rda")
 
 rm(train_set,test_set,movie_avgs,user_avgs,genres_avgs,time_effect_avgs,rel_effect_avgs)
-rm(lambda,lambdas, model_9_rmse,mu,rmses,predicted_ratings)
+rm(lambda,lambdas, model_9_rmse,mu,rmses)
 ```
 
 \newpage
@@ -1744,11 +1777,10 @@ rm(lambda,lambdas, model_9_rmse,mu,rmses,predicted_ratings)
 
 Let's add Regularization to our Model 1-6 results table to get Table \ref{tbl:rmse_results_model_1-9} and arrange in descending order of RMSE's
 
-```{r, reg_rd_3, echo=FALSE, eval=TRUE}
+```{r, m9_4, echo=FALSE, eval=TRUE}
   kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Models 1-9\\label{tbl:rmse_results_model_1-9}") %>%
     kable_styling(latex_options=c("HOLD_position"), font_size=7)
 ```
-\newpage
 
 \newpage
 # Results
