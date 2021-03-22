@@ -2,7 +2,7 @@
 title: "Movielens  \n Movie Recommendation System  \n A Harvard Capstone Project"
 author: "Manoj Bijoor"
 email: manoj.bijoor@gmail.com
-date: "March 19, 2021"
+date: "March 21, 2021"
 output: 
   pdf_document: 
     latex_engine: pdflatex
@@ -1739,6 +1739,484 @@ Index & Method & RMSE\\
 \end{table}
 
 \newpage
+
+## Multi-fold cross-validation on only edx train_set data set, for the full model 9.
+
+Finally using Multi-fold cross-validation on only our edx train_set data set, for the full model 9, we get the optimal tuning parameter $\lambda$, which we will use following this r code chunk against our edx test_set to get our minimum RMSE for the edx data:
+
+
+```r
+Sys.time()
+```
+
+```
+[1] "2021-03-21 19:39:14 EDT"
+```
+
+```r
+# load("rdas/train_set.rda")
+
+input <- train_set
+
+k <- 4 # temporary, to be deleted  15-30 min
+# k <- 5 # temporary, to be deleted  1 hr, also default for fold()
+# k <- 10 # temporary, to be deleted 3 hrs
+# k <- 20 # temporary, to be deleted 5.45-6 hrs
+# k <- 60 #                          19hours
+Sys.time()
+```
+
+```
+[1] "2021-03-21 19:39:14 EDT"
+```
+
+```r
+set.seed(1, sample.kind="Rounding") # For reproducibility
+
+training_set <- fold(input, k = k, num_col = "rating")
+# training_set <- fold(input, k = k, num_col = "rating", num_fold_cols = 2)
+# training_set <- fold(input, k = k, cat_col = "genres", id_col = "userId", num_col = "rating")
+# rm(input, train_set)
+rm(input)
+
+# Order by .folds
+training_set <- training_set %>% arrange(.folds)
+
+# training_set %>% kable()
+str(training_set)
+```
+
+```
+grouped_df [7,200,043 x 14] (S3: grouped_df/tbl_df/tbl/data.frame)
+ $ userId        : int [1:7200043] 1 1 2 2 2 2 3 3 3 3 ...
+ $ movieId       : num [1:7200043] 316 377 648 733 786 ...
+ $ rating        : num [1:7200043] 5 5 2 3 3 4 3.5 3 4.5 4.5 ...
+ $ title         : chr [1:7200043] "Stargate " "Speed " "Mission: Impossible " "Rock, The " ...
+ $ genres        : chr [1:7200043] "Action|Adventure|Sci-Fi" "Action|Romance|Thriller" "Action|Adventure|Mystery|Thriller" "Action|Adventure|Thriller" ...
+ $ rating_date   : POSIXct[1:7200043], format: "1996-08-02 10:56:32" "1996-08-02 11:03:54" ...
+ $ movie_dt      : num [1:7200043] 1994 1994 1996 1996 1996 ...
+ $ date          : POSIXct[1:7200043], format: "1996-08-04" "1996-08-04" ...
+ $ avg_rating    : num [1:7200043] 3.54 3.54 3.62 3.62 3.62 ...
+ $ avg_rating_rel: num [1:7200043] 3.35 3.53 3.39 3.7 3.17 ...
+ $ n             : int [1:7200043] 17030 21361 18992 16175 8835 22584 5466 7915 154 5196 ...
+ $ years         : num [1:7200043] 24 24 22 22 22 35 51 34 21 21 ...
+ $ n_year        : num [1:7200043] 710 890 863 735 402 645 107 233 7 247 ...
+ $ .folds        : Factor w/ 4 levels "1","2","3","4": 1 1 1 1 1 1 1 1 1 1 ...
+ - attr(*, "groups")= tibble [4 x 2] (S3: tbl_df/tbl/data.frame)
+  ..$ .folds: Factor w/ 4 levels "1","2","3","4": 1 2 3 4
+  ..$ .rows : list<int> [1:4] 
+  .. ..$ : int [1:1800011] 1 2 3 4 5 6 7 8 9 10 ...
+  .. ..$ : int [1:1800011] 1800012 1800013 1800014 1800015 1800016 1800017 1800018 1800019 1800020 1800021 ...
+  .. ..$ : int [1:1800011] 3600023 3600024 3600025 3600026 3600027 3600028 3600029 3600030 3600031 3600032 ...
+  .. ..$ : int [1:1800010] 5400034 5400035 5400036 5400037 5400038 5400039 5400040 5400041 5400042 5400043 ...
+  .. ..@ ptype: int(0) 
+  ..- attr(*, ".drop")= logi TRUE
+```
+
+```r
+# lambdas <- seq(0, 10, 0.25)
+# we have learnt that the lambda range is 4-7 at this point
+lambdas <- seq(4, 7, 0.05)
+
+rmses <- matrix(ncol = length(1:k), nrow = length(lambdas))
+rmses <- sapply(1:k, function(fold){
+  
+  # Create training set for this iteration
+  # Subset all the datapoints where .folds does not match the current fold
+  train_set_ts <- training_set[training_set$.folds != fold,]
+  
+  # Create test set for this iteration
+  # Subset all the datapoints where .folds matches the current fold
+  test_set_ts <- training_set[training_set$.folds == fold,]
+  test_set_ts <- test_set_ts %>% 
+    semi_join(train_set_ts, by = "movieId") %>%
+    semi_join(train_set_ts, by = "userId") %>% 
+    semi_join(train_set_ts, by = "date")
+
+  rmses[,fold] <- sapply(lambdas, function(l){
+    mu <- mean(train_set_ts$rating)
+    b_i <- train_set_ts %>%
+      group_by(movieId) %>%
+      summarize(b_i = sum(rating - mu)/(n()+l))
+    b_u <- train_set_ts %>%
+      left_join(b_i, by="movieId") %>%
+      group_by(userId) %>%
+      summarize(b_u = sum(rating - b_i - mu)/(n()+l))
+    b_g <- train_set_ts %>%
+      left_join(b_i, by='movieId') %>%
+      left_join(b_u, by='userId') %>%
+      group_by(genres) %>%
+      summarize(b_g = sum(rating - mu - b_i - b_u)/(n()+l))
+    b_d <- train_set_ts %>%
+      left_join(b_i, by='movieId') %>%
+      left_join(b_u, by='userId') %>% 
+      left_join(b_g, by = "genres") %>% 
+      group_by(date) %>% 
+      summarize(b_d = sum(avg_rating - mu - b_i - b_u - b_g)/(n()+l))
+    b_r <- train_set_ts %>%
+      left_join(b_i, by='movieId') %>%
+      left_join(b_u, by='userId') %>% 
+      left_join(b_g, by = "genres") %>% 
+      left_join(b_d, by = "date") %>% 
+      group_by(movieId) %>% 
+      summarize(b_r = sum(avg_rating_rel - mu - b_i - b_u - b_g - b_d)/(n()+l))
+    
+    predicted_ratings <- test_set_ts %>%
+      left_join(b_i, by = "movieId") %>%
+      left_join(b_u, by = "userId") %>%
+      left_join(b_g, by = "genres") %>% 
+      left_join(b_d, by = "date") %>% 
+      left_join(b_r, by='movieId') %>%
+      mutate(pred = mu + b_i + b_u + b_g + b_d + b_r) %>% 
+      .$pred
+    
+    return(RMSE(predicted_ratings, test_set_ts$rating))
+  })
+})
+Sys.time()
+```
+
+```
+[1] "2021-03-21 20:20:35 EDT"
+```
+
+```r
+rm(training_set,train_set_ts,test_set_ts)
+save(rmses,file = "rdas/rmses_k.rda")
+
+rmses_all <- as.data.frame(rmses) %>% 
+  mutate(lambdas=lambdas) %>% 
+  gather(key = "k", value = "value",1:sum(unique(k))) 
+rmses_all %>% 
+  ggplot(aes(lambdas,value, col=k)) + 
+  geom_point()
+```
+
+![](figures/mf_cv_all_models-1.pdf)<!-- --> 
+
+```r
+# target rmse 0.86490
+summary(rmses)
+```
+
+```
+       V1               V2               V3               V4        
+ Min.   :0.8643   Min.   :0.8653   Min.   :0.8651   Min.   :0.8633  
+ 1st Qu.:0.8643   1st Qu.:0.8653   1st Qu.:0.8651   1st Qu.:0.8633  
+ Median :0.8644   Median :0.8653   Median :0.8651   Median :0.8633  
+ Mean   :0.8644   Mean   :0.8653   Mean   :0.8651   Mean   :0.8634  
+ 3rd Qu.:0.8644   3rd Qu.:0.8653   3rd Qu.:0.8651   3rd Qu.:0.8634  
+ Max.   :0.8644   Max.   :0.8654   Max.   :0.8652   Max.   :0.8634  
+```
+
+```r
+summary(rmses_all)
+```
+
+```
+    lambdas          k                 value       
+ Min.   :4.00   Length:244         Min.   :0.8633  
+ 1st Qu.:4.75   Class :character   1st Qu.:0.8641  
+ Median :5.50   Mode  :character   Median :0.8648  
+ Mean   :5.50                      Mean   :0.8645  
+ 3rd Qu.:6.25                      3rd Qu.:0.8652  
+ Max.   :7.00                      Max.   :0.8654  
+```
+
+```r
+# Get lambda for min rmse values for each fold
+lambdas[sapply(1:k, function(x) which.min(rmses[,x]))]
+```
+
+```
+[1] 4.75 4.75 4.85 4.75
+```
+
+```r
+rmses_all$lambdas[sapply(1:k, function(x) which.min(rmses[,x]))]
+```
+
+```
+[1] 4.75 4.75 4.85 4.75
+```
+
+```r
+# Get mean lambda from min rmse values for each fold
+mean(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
+```
+
+```
+[1] 4.775
+```
+
+```r
+mean(rmses_all$lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
+```
+
+```
+[1] 4.775
+```
+
+```r
+lambda_opt <- mean(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
+
+# Get median lambda from min rmse values for each fold
+median(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
+```
+
+```
+[1] 4.75
+```
+
+```r
+median(rmses_all$lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
+```
+
+```
+[1] 4.75
+```
+
+```r
+# Get range/(min,max) lambda from min rmse values for each fold
+range(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
+```
+
+```
+[1] 4.75 4.85
+```
+
+```r
+save(rmses_all,file = "rdas/rmses_all_k.rda")
+
+Sys.time()
+```
+
+```
+[1] "2021-03-21 20:20:35 EDT"
+```
+
+
+\newpage
+## Model 10 : Model 6 + Regularization from multi-fold CV(Model 9 with multi-fold CV)
+
+We will use the penalty term from our previous section where we got our optimal lambda_opt using multi-fold CV to get minimum RMSE for the edx test_set
+
+
+```r
+# load("rdas/train_set.rda")
+# load("rdas/test_set.rda")
+
+rmses_min <- sapply(lambda_opt, function(l){
+  mu <- mean(train_set$rating)
+  b_i <- train_set %>%
+    group_by(movieId) %>%
+    summarize(b_i = sum(rating - mu)/(n()+l), n_i = n())
+  b_u <- train_set %>% 
+    left_join(b_i, by="movieId") %>%
+    group_by(userId) %>%
+    summarize(b_u = sum(rating - b_i - mu)/(n()+l), n_i = n())
+  b_g <- train_set %>% 
+    left_join(b_i, by='movieId') %>% 
+    left_join(b_u, by='userId') %>%
+    group_by(genres) %>% 
+    summarize(b_g = sum(rating - mu - b_i - b_u)/(n()+l), n_i = n())
+  b_d <- train_set %>%
+    left_join(b_i, by='movieId') %>%
+    left_join(b_u, by='userId') %>% 
+    left_join(b_g, by = "genres") %>% 
+    group_by(date) %>% 
+    summarize(b_d = sum(avg_rating - mu - b_i - b_u - b_g)/(n()+l), n_i = n())
+  b_r <- train_set %>%
+    left_join(b_i, by='movieId') %>%
+    left_join(b_u, by='userId') %>% 
+    left_join(b_g, by = "genres") %>% 
+    left_join(b_d, by = "date") %>% 
+    group_by(movieId) %>% 
+    summarize(b_r = sum(avg_rating_rel - mu - b_i - b_u - b_g - b_d)/(n()+l), n_i = n())
+
+  predicted_ratings <- test_set %>%
+    left_join(b_i, by = "movieId") %>%
+    left_join(b_u, by = "userId") %>%
+    left_join(b_g, by = "genres") %>% 
+    left_join(b_d, by = "date") %>% 
+    left_join(b_r, by='movieId') %>%
+    mutate(pred = mu + b_i + b_u + b_g + b_d + b_r) %>% 
+    .$pred
+  
+  return(RMSE(predicted_ratings, test_set$rating))
+})
+
+(rmses_min)
+```
+
+```
+[1] 0.8629105
+```
+
+```r
+save(rmses_min, file = "rdas/rmses_min.rda")
+```
+
+\newpage
+To see how the estimates shrink, let's make a plot of the regularized estimates versus the least squares estimates.
+**_Here we use 4 fold_**
+
+![](figures/m10_2-1.pdf)<!-- --> 
+
+
+
+
+\newpage
+### Results Table  Model 1-10
+
+Let's add Model 10 results table to get Table \ref{tbl:rmse_results_model_1-10} and arrange in descending order of RMSE's
+
+\begin{table}[H]
+
+\caption{\label{tab:m10_4}RMSE Results Models 1-10\label{tbl:rmse_results_model_1-10}}
+\centering
+\fontsize{7}{9}\selectfont
+\begin{tabular}[t]{llr}
+\toprule
+Index & Method & RMSE\\
+\midrule
+1 & Just the average & 1.0599043\\
+2 & Movie Effect Model & 0.9437429\\
+7 & Regularized Movie Effect Model - 1 fold CV & 0.9436745\\
+3 & Movie + User Effects Model & 0.8659320\\
+4 & Movie + User + Genres Effects Model & 0.8655941\\
+5 & Movie + User + Genres + Rating Time Effects Model & 0.8654205\\
+8 & Regularized Movie + User + Genre Effects Model - 1 fold CV & 0.8649406\\
+6 & Movie + User + Genres + Rating Time + Release date Effects Model & 0.8633330\\
+10 & Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 4 fold CV & 0.8629105\\
+9 & Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 1 fold CV & 0.8629094\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+## Final Hold-Out test of my final algorithm
+
+I will develop my algorithm using the edx set. For a final test of my final algorithm, I predict movie ratings in the validation set (the final hold-out test set) as if they were unknown. [RMSE](https://en.wikipedia.org/wiki/Root-mean-square_deviation) will be used to evaluate how close my predictions are to the true values in the validation set (the final hold-out test set). My target is RMSE < 0.86490. 
+
+
+```r
+load("rdas/edx_md.rda")
+load("rdas/validation_md.rda")
+(lambda_opt)
+```
+
+```
+[1] 4.775
+```
+
+```r
+rmses_val <- sapply(lambda_opt, function(l){
+  mu <- mean(edx_md$rating)
+  b_i <- edx_md %>%
+    group_by(movieId) %>%
+    summarize(b_i = sum(rating - mu)/(n()+l), n_i = n())
+  b_u <- edx_md %>% 
+    left_join(b_i, by="movieId") %>%
+    group_by(userId) %>%
+    summarize(b_u = sum(rating - b_i - mu)/(n()+l), n_i = n())
+  b_g <- edx_md %>% 
+    left_join(b_i, by='movieId') %>% 
+    left_join(b_u, by='userId') %>%
+    group_by(genres) %>% 
+    summarize(b_g = sum(rating - mu - b_i - b_u)/(n()+l), n_i = n())
+  b_d <- edx_md %>%
+    left_join(b_i, by='movieId') %>%
+    left_join(b_u, by='userId') %>% 
+    left_join(b_g, by = "genres") %>% 
+    group_by(date) %>% 
+    summarize(b_d = sum(avg_rating - mu - b_i - b_u - b_g)/(n()+l), n_i = n())
+  b_r <- edx_md %>%
+    left_join(b_i, by='movieId') %>%
+    left_join(b_u, by='userId') %>% 
+    left_join(b_g, by = "genres") %>% 
+    left_join(b_d, by = "date") %>% 
+    group_by(movieId) %>% 
+    summarize(b_r = sum(avg_rating_rel - mu - b_i - b_u - b_g - b_d)/(n()+l), n_i = n())
+
+  predicted_ratings <- validation_md %>%
+    left_join(b_i, by = "movieId") %>%
+    left_join(b_u, by = "userId") %>%
+    left_join(b_g, by = "genres") %>% 
+    left_join(b_d, by = "date") %>% 
+    left_join(b_r, by='movieId') %>%
+    mutate(pred = mu + b_i + b_u + b_g + b_d + b_r) %>% 
+    .$pred
+  
+  return(RMSE(predicted_ratings, validation_md$rating))
+})
+
+(rmses_val)
+```
+
+```
+[1] 0.8634943
+```
+
+```r
+save(rmses_val, file = "rdas/rmses_val.rda")
+```
+
+
+
+\newpage
+### Results Table  Model 1-10
+
+Let's add Model 10 results table to get Table \ref{tbl:rmse_results_model_1-10_val} and arrange in descending order of RMSE's
+
+\begin{table}[H]
+
+\caption{\label{tab:final_val_3}RMSE Results Models 1-10 Validation\label{tbl:rmse_results_model_1-10_val}}
+\centering
+\fontsize{7}{9}\selectfont
+\begin{tabular}[t]{llr}
+\toprule
+Index & Method & RMSE\\
+\midrule
+1 & Just the average & 1.0599043\\
+2 & Movie Effect Model & 0.9437429\\
+7 & Regularized Movie Effect Model - 1 fold CV & 0.9436745\\
+3 & Movie + User Effects Model & 0.8659320\\
+4 & Movie + User + Genres Effects Model & 0.8655941\\
+5 & Movie + User + Genres + Rating Time Effects Model & 0.8654205\\
+8 & Regularized Movie + User + Genre Effects Model - 1 fold CV & 0.8649406\\
+VAL & Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 4 fold CV - Validation & 0.8634943\\
+6 & Movie + User + Genres + Rating Time + Release date Effects Model & 0.8633330\\
+10 & Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 4 fold CV & 0.8629105\\
+9 & Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 1 fold CV & 0.8629094\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+
+<!-- # To be modified -->
+<!-- ```{r, mf_cv_m_1_5_2, echo=TRUE, eval=FALSE} -->
+<!-- # save(rmses, file = "rmses.rda") -->
+<!-- save(rmses, file = "rmses2.rda") -->
+
+<!-- rmse_results <- bind_rows(rmse_results, -->
+<!--                           tibble(Method="60-fold CV Regularized Movie + User + Genre + Time + Releasedate Effect Model entire edx dataset",   -->
+<!--                                  RMSE = min(rmses))) -->
+
+<!-- save(rmse_results, file = "rmse_results2.rda") -->
+
+<!-- rm(train_set,test_set,movie_avgs,user_avgs,genres_avgs,time_effect_avgs,rel_effect_avgs) -->
+<!-- rm(lambda,lambdas, model_5_rmse,mu,rmses,predicted_ratings) -->
+<!-- ``` -->
+<!-- \newpage -->
+<!-- ### Results Table -->
+<!-- ```{r, mf_cv_m_1_5_3, echo=TRUE, eval=TRUE} -->
+<!-- Sys.time() -->
+<!-- rmse_results %>% knitr::kable() -->
+<!-- ``` -->
+<!-- \newpage -->
+
 # Results
 
 ---  
@@ -2563,9 +3041,308 @@ rmse_results <- bind_rows(rmse_results,
 rmse_results <- rmse_results %>% arrange(desc(RMSE))
 save(rmse_results, file = "rdas/rmse_results.rda")
 
-rm(train_set,test_set,movie_avgs,user_avgs,genres_avgs,time_effect_avgs,rel_effect_avgs)
-rm(lambda,lambdas, model_9_rmse,mu,rmses)
+# rm(train_set,test_set,movie_avgs,user_avgs,genres_avgs,time_effect_avgs,rel_effect_avgs)
+# rm(lambda,lambdas, model_9_rmse,mu,rmses)
   kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Models 1-9\\label{tbl:rmse_results_model_1-9}") %>%
+    kable_styling(latex_options=c("HOLD_position"), font_size=7)
+Sys.time()
+# load("rdas/train_set.rda")
+
+input <- train_set
+
+k <- 4 # temporary, to be deleted  15-30 min
+# k <- 5 # temporary, to be deleted  1 hr, also default for fold()
+# k <- 10 # temporary, to be deleted 3 hrs
+# k <- 20 # temporary, to be deleted 5.45-6 hrs
+# k <- 60 #                          19hours
+Sys.time()
+set.seed(1, sample.kind="Rounding") # For reproducibility
+
+training_set <- fold(input, k = k, num_col = "rating")
+# training_set <- fold(input, k = k, num_col = "rating", num_fold_cols = 2)
+# training_set <- fold(input, k = k, cat_col = "genres", id_col = "userId", num_col = "rating")
+# rm(input, train_set)
+rm(input)
+
+# Order by .folds
+training_set <- training_set %>% arrange(.folds)
+
+# training_set %>% kable()
+str(training_set)
+
+# lambdas <- seq(0, 10, 0.25)
+# we have learnt that the lambda range is 4-7 at this point
+lambdas <- seq(4, 7, 0.05)
+
+rmses <- matrix(ncol = length(1:k), nrow = length(lambdas))
+rmses <- sapply(1:k, function(fold){
+  
+  # Create training set for this iteration
+  # Subset all the datapoints where .folds does not match the current fold
+  train_set_ts <- training_set[training_set$.folds != fold,]
+  
+  # Create test set for this iteration
+  # Subset all the datapoints where .folds matches the current fold
+  test_set_ts <- training_set[training_set$.folds == fold,]
+  test_set_ts <- test_set_ts %>% 
+    semi_join(train_set_ts, by = "movieId") %>%
+    semi_join(train_set_ts, by = "userId") %>% 
+    semi_join(train_set_ts, by = "date")
+
+  rmses[,fold] <- sapply(lambdas, function(l){
+    mu <- mean(train_set_ts$rating)
+    b_i <- train_set_ts %>%
+      group_by(movieId) %>%
+      summarize(b_i = sum(rating - mu)/(n()+l))
+    b_u <- train_set_ts %>%
+      left_join(b_i, by="movieId") %>%
+      group_by(userId) %>%
+      summarize(b_u = sum(rating - b_i - mu)/(n()+l))
+    b_g <- train_set_ts %>%
+      left_join(b_i, by='movieId') %>%
+      left_join(b_u, by='userId') %>%
+      group_by(genres) %>%
+      summarize(b_g = sum(rating - mu - b_i - b_u)/(n()+l))
+    b_d <- train_set_ts %>%
+      left_join(b_i, by='movieId') %>%
+      left_join(b_u, by='userId') %>% 
+      left_join(b_g, by = "genres") %>% 
+      group_by(date) %>% 
+      summarize(b_d = sum(avg_rating - mu - b_i - b_u - b_g)/(n()+l))
+    b_r <- train_set_ts %>%
+      left_join(b_i, by='movieId') %>%
+      left_join(b_u, by='userId') %>% 
+      left_join(b_g, by = "genres") %>% 
+      left_join(b_d, by = "date") %>% 
+      group_by(movieId) %>% 
+      summarize(b_r = sum(avg_rating_rel - mu - b_i - b_u - b_g - b_d)/(n()+l))
+    
+    predicted_ratings <- test_set_ts %>%
+      left_join(b_i, by = "movieId") %>%
+      left_join(b_u, by = "userId") %>%
+      left_join(b_g, by = "genres") %>% 
+      left_join(b_d, by = "date") %>% 
+      left_join(b_r, by='movieId') %>%
+      mutate(pred = mu + b_i + b_u + b_g + b_d + b_r) %>% 
+      .$pred
+    
+    return(RMSE(predicted_ratings, test_set_ts$rating))
+  })
+})
+Sys.time()
+
+rm(training_set,train_set_ts,test_set_ts)
+save(rmses,file = "rdas/rmses_k.rda")
+
+rmses_all <- as.data.frame(rmses) %>% 
+  mutate(lambdas=lambdas) %>% 
+  gather(key = "k", value = "value",1:sum(unique(k))) 
+rmses_all %>% 
+  ggplot(aes(lambdas,value, col=k)) + 
+  geom_point()
+
+# target rmse 0.86490
+summary(rmses)
+summary(rmses_all)
+
+# Get lambda for min rmse values for each fold
+lambdas[sapply(1:k, function(x) which.min(rmses[,x]))]
+rmses_all$lambdas[sapply(1:k, function(x) which.min(rmses[,x]))]
+
+# Get mean lambda from min rmse values for each fold
+mean(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
+mean(rmses_all$lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
+lambda_opt <- mean(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
+
+# Get median lambda from min rmse values for each fold
+median(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
+median(rmses_all$lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
+
+# Get range/(min,max) lambda from min rmse values for each fold
+range(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
+
+save(rmses_all,file = "rdas/rmses_all_k.rda")
+
+Sys.time()
+# load("rdas/train_set.rda")
+# load("rdas/test_set.rda")
+
+rmses_min <- sapply(lambda_opt, function(l){
+  mu <- mean(train_set$rating)
+  b_i <- train_set %>%
+    group_by(movieId) %>%
+    summarize(b_i = sum(rating - mu)/(n()+l), n_i = n())
+  b_u <- train_set %>% 
+    left_join(b_i, by="movieId") %>%
+    group_by(userId) %>%
+    summarize(b_u = sum(rating - b_i - mu)/(n()+l), n_i = n())
+  b_g <- train_set %>% 
+    left_join(b_i, by='movieId') %>% 
+    left_join(b_u, by='userId') %>%
+    group_by(genres) %>% 
+    summarize(b_g = sum(rating - mu - b_i - b_u)/(n()+l), n_i = n())
+  b_d <- train_set %>%
+    left_join(b_i, by='movieId') %>%
+    left_join(b_u, by='userId') %>% 
+    left_join(b_g, by = "genres") %>% 
+    group_by(date) %>% 
+    summarize(b_d = sum(avg_rating - mu - b_i - b_u - b_g)/(n()+l), n_i = n())
+  b_r <- train_set %>%
+    left_join(b_i, by='movieId') %>%
+    left_join(b_u, by='userId') %>% 
+    left_join(b_g, by = "genres") %>% 
+    left_join(b_d, by = "date") %>% 
+    group_by(movieId) %>% 
+    summarize(b_r = sum(avg_rating_rel - mu - b_i - b_u - b_g - b_d)/(n()+l), n_i = n())
+
+  predicted_ratings <- test_set %>%
+    left_join(b_i, by = "movieId") %>%
+    left_join(b_u, by = "userId") %>%
+    left_join(b_g, by = "genres") %>% 
+    left_join(b_d, by = "date") %>% 
+    left_join(b_r, by='movieId') %>%
+    mutate(pred = mu + b_i + b_u + b_g + b_d + b_r) %>% 
+    .$pred
+  
+  return(RMSE(predicted_ratings, test_set$rating))
+})
+
+(rmses_min)
+save(rmses_min, file = "rdas/rmses_min.rda")
+mu <- mean(train_set$rating)
+lambda <- lambda_opt
+movie_reg_avgs <- train_set %>%
+    group_by(movieId) %>%
+    summarize(b_i = sum(rating - mu)/(n()+lambda), n_i = n())
+user_reg_avgs <- train_set %>% 
+    left_join(movie_avgs, by="movieId") %>%
+    group_by(userId) %>%
+    summarize(b_u = sum(rating - b_i - mu)/(n()+lambda), n_i = n())
+genres_reg_avgs <- train_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>% 
+    group_by(genres) %>% 
+    summarize(b_g = sum(rating - mu - b_i - b_u)/(n()+lambda), n_i = n())
+time_effect_reg_avgs <- train_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>% 
+  left_join(genres_avgs, by = "genres") %>% 
+    group_by(date) %>% 
+    summarize(b_d = sum(avg_rating - mu - b_i - b_u - b_g)/(n()+lambda), n_i = n())
+rel_effect_reg_avgs <- train_set %>%
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>% 
+  left_join(genres_avgs, by = "genres") %>% 
+  left_join(time_effect_avgs, by = "date") %>% 
+  group_by(movieId) %>% 
+  summarize(b_r = sum(avg_rating_rel - mu - b_i - b_u - b_g - b_d)/(n()+lambda), n_i = n())
+
+mp <- tibble(original = movie_avgs$b_i,
+       regularlized = movie_reg_avgs$b_i,
+       n = movie_reg_avgs$n_i) %>%
+  ggplot(aes(original, regularlized, size=sqrt(n))) +
+  geom_point(shape=1, alpha=0.5) + 
+  ggtitle("Movie Effect Reg")
+up <- tibble(original = user_avgs$b_u,
+       regularlized = user_reg_avgs$b_u,
+       n = user_reg_avgs$n_i) %>%
+  ggplot(aes(original, regularlized, size=sqrt(n))) +
+  geom_point(shape=1, alpha=0.5) + 
+  ggtitle("User Effect Reg")
+gp <- tibble(original = genres_avgs$b_g,
+       regularlized = genres_reg_avgs$b_g,
+       n = genres_reg_avgs$n_i) %>%
+  ggplot(aes(original, regularlized, size=sqrt(n))) +
+  geom_point(shape=1, alpha=0.5) + 
+  ggtitle("Genres Effect Reg")
+tp <- tibble(original = time_effect_avgs$b_d,
+       regularlized = time_effect_reg_avgs$b_d,
+       n = time_effect_reg_avgs$n_i) %>%
+  ggplot(aes(original, regularlized, size=sqrt(n))) +
+  geom_point(shape=1, alpha=0.5) + 
+  ggtitle("Rating time Effect Reg")
+rp <- tibble(original = rel_effect_avgs$b_r,
+       regularlized = rel_effect_reg_avgs$b_r,
+       n = rel_effect_reg_avgs$n_i) %>%
+  ggplot(aes(original, regularlized, size=sqrt(n))) +
+  geom_point(shape=1, alpha=0.5) + 
+  ggtitle("Release date Effect Reg")
+
+# require(gridExtra)
+grid.arrange(mp, up, gp, tp, rp, ncol=2)
+model_10_rmse <- rmses_min
+save(model_10_rmse, file = "rdas/model_10_rmse.rda")
+
+rmse_results <- bind_rows(rmse_results, 
+                          tibble(Index = "10", 
+                                 Method="Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 4 fold CV", 
+                                 RMSE = model_10_rmse))
+rmse_results <- rmse_results %>% arrange(desc(RMSE))
+save(rmse_results, file = "rdas/rmse_results.rda")
+
+# rm(train_set,test_set,movie_avgs,user_avgs,genres_avgs,time_effect_avgs,rel_effect_avgs)
+# rm(lambda,lambdas, model_9_rmse,mu,rmses)
+  kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Models 1-10\\label{tbl:rmse_results_model_1-10}") %>%
+    kable_styling(latex_options=c("HOLD_position"), font_size=7)
+load("rdas/edx_md.rda")
+load("rdas/validation_md.rda")
+(lambda_opt)
+
+rmses_val <- sapply(lambda_opt, function(l){
+  mu <- mean(edx_md$rating)
+  b_i <- edx_md %>%
+    group_by(movieId) %>%
+    summarize(b_i = sum(rating - mu)/(n()+l), n_i = n())
+  b_u <- edx_md %>% 
+    left_join(b_i, by="movieId") %>%
+    group_by(userId) %>%
+    summarize(b_u = sum(rating - b_i - mu)/(n()+l), n_i = n())
+  b_g <- edx_md %>% 
+    left_join(b_i, by='movieId') %>% 
+    left_join(b_u, by='userId') %>%
+    group_by(genres) %>% 
+    summarize(b_g = sum(rating - mu - b_i - b_u)/(n()+l), n_i = n())
+  b_d <- edx_md %>%
+    left_join(b_i, by='movieId') %>%
+    left_join(b_u, by='userId') %>% 
+    left_join(b_g, by = "genres") %>% 
+    group_by(date) %>% 
+    summarize(b_d = sum(avg_rating - mu - b_i - b_u - b_g)/(n()+l), n_i = n())
+  b_r <- edx_md %>%
+    left_join(b_i, by='movieId') %>%
+    left_join(b_u, by='userId') %>% 
+    left_join(b_g, by = "genres") %>% 
+    left_join(b_d, by = "date") %>% 
+    group_by(movieId) %>% 
+    summarize(b_r = sum(avg_rating_rel - mu - b_i - b_u - b_g - b_d)/(n()+l), n_i = n())
+
+  predicted_ratings <- validation_md %>%
+    left_join(b_i, by = "movieId") %>%
+    left_join(b_u, by = "userId") %>%
+    left_join(b_g, by = "genres") %>% 
+    left_join(b_d, by = "date") %>% 
+    left_join(b_r, by='movieId') %>%
+    mutate(pred = mu + b_i + b_u + b_g + b_d + b_r) %>% 
+    .$pred
+  
+  return(RMSE(predicted_ratings, validation_md$rating))
+})
+
+(rmses_val)
+save(rmses_val, file = "rdas/rmses_val.rda")
+model_val_rmse <- rmses_val
+save(model_val_rmse, file = "rdas/model_val_rmse.rda")
+
+rmse_results <- bind_rows(rmse_results, 
+                          tibble(Index = "VAL", 
+                                 Method="Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 4 fold CV - Validation", 
+                                 RMSE = model_val_rmse))
+rmse_results <- rmse_results %>% arrange(desc(RMSE))
+save(rmse_results, file = "rdas/rmse_final_results.rda")
+
+# rm(train_set,test_set,movie_avgs,user_avgs,genres_avgs,time_effect_avgs,rel_effect_avgs)
+# rm(lambda,lambdas, model_9_rmse,mu,rmses)
+  kable(rmse_results, "latex", escape=FALSE, booktabs=TRUE, linesep="", caption="RMSE Results Models 1-10 Validation\\label{tbl:rmse_results_model_1-10_val}") %>%
     kable_styling(latex_options=c("HOLD_position"), font_size=7)
 	knitr::knit_exit()
 options(tinytex.verbose = TRUE)
