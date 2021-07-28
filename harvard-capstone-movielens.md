@@ -2,7 +2,7 @@
 title: "Movielens  \n Movie Recommendation System  \n A Harvard Capstone Project"
 author: "Manoj Bijoor"
 email: manoj.bijoor@gmail.com
-date: "March 21, 2021"
+date: "July 28, 2021"
 output: 
   pdf_document: 
     latex_engine: pdflatex
@@ -100,7 +100,9 @@ header-includes:
 
 \bigskip
 
-...this is the abstract text...
+Develop an algorithm using the edx set (MovieLens data). For a final test of my final algorithm, predict movie ratings in the validation set (the final hold-out test set) as if they were unknown. RMSE is to be used to evaluate how close my predictions are to the true values in the validation set (the final hold-out test set). My target is RMSE < 0.86490.  
+
+I achieved my goal with an RMSE of 0.8634961.
 
 <!-- ------------------------------ -->
 
@@ -1750,7 +1752,7 @@ Sys.time()
 ```
 
 ```
-[1] "2021-03-21 19:39:14 EDT"
+[1] "2021-07-28 09:49:07 EDT"
 ```
 
 ```r
@@ -1758,16 +1760,16 @@ Sys.time()
 
 input <- train_set
 
-k <- 4 # temporary, to be deleted  15-30 min
+# k <- 4 # temporary, to be deleted  15-30 min
 # k <- 5 # temporary, to be deleted  1 hr, also default for fold()
-# k <- 10 # temporary, to be deleted 3 hrs
+k <- 10 # temporary, to be deleted 3 hrs
 # k <- 20 # temporary, to be deleted 5.45-6 hrs
 # k <- 60 #                          19hours
 Sys.time()
 ```
 
 ```
-[1] "2021-03-21 19:39:14 EDT"
+[1] "2021-07-28 09:49:07 EDT"
 ```
 
 ```r
@@ -1788,27 +1790,33 @@ str(training_set)
 
 ```
 grouped_df [7,200,043 x 14] (S3: grouped_df/tbl_df/tbl/data.frame)
- $ userId        : int [1:7200043] 1 1 2 2 2 2 3 3 3 3 ...
- $ movieId       : num [1:7200043] 316 377 648 733 786 ...
- $ rating        : num [1:7200043] 5 5 2 3 3 4 3.5 3 4.5 4.5 ...
- $ title         : chr [1:7200043] "Stargate " "Speed " "Mission: Impossible " "Rock, The " ...
- $ genres        : chr [1:7200043] "Action|Adventure|Sci-Fi" "Action|Romance|Thriller" "Action|Adventure|Mystery|Thriller" "Action|Adventure|Thriller" ...
- $ rating_date   : POSIXct[1:7200043], format: "1996-08-02 10:56:32" "1996-08-02 11:03:54" ...
- $ movie_dt      : num [1:7200043] 1994 1994 1996 1996 1996 ...
- $ date          : POSIXct[1:7200043], format: "1996-08-04" "1996-08-04" ...
- $ avg_rating    : num [1:7200043] 3.54 3.54 3.62 3.62 3.62 ...
- $ avg_rating_rel: num [1:7200043] 3.35 3.53 3.39 3.7 3.17 ...
- $ n             : int [1:7200043] 17030 21361 18992 16175 8835 22584 5466 7915 154 5196 ...
- $ years         : num [1:7200043] 24 24 22 22 22 35 51 34 21 21 ...
- $ n_year        : num [1:7200043] 710 890 863 735 402 645 107 233 7 247 ...
- $ .folds        : Factor w/ 4 levels "1","2","3","4": 1 1 1 1 1 1 1 1 1 1 ...
- - attr(*, "groups")= tibble [4 x 2] (S3: tbl_df/tbl/data.frame)
-  ..$ .folds: Factor w/ 4 levels "1","2","3","4": 1 2 3 4
-  ..$ .rows : list<int> [1:4] 
-  .. ..$ : int [1:1800011] 1 2 3 4 5 6 7 8 9 10 ...
-  .. ..$ : int [1:1800011] 1800012 1800013 1800014 1800015 1800016 1800017 1800018 1800019 1800020 1800021 ...
-  .. ..$ : int [1:1800011] 3600023 3600024 3600025 3600026 3600027 3600028 3600029 3600030 3600031 3600032 ...
-  .. ..$ : int [1:1800010] 5400034 5400035 5400036 5400037 5400038 5400039 5400040 5400041 5400042 5400043 ...
+ $ userId        : int [1:7200043] 2 2 2 3 3 3 3 4 4 4 ...
+ $ movieId       : num [1:7200043] 648 733 1210 1564 1597 ...
+ $ rating        : num [1:7200043] 2 3 4 4.5 4.5 4 3 5 3 5 ...
+ $ title         : chr [1:7200043] "Mission: Impossible " "Rock, The " "Star Wars: Episode VI - Return of the Jedi " "For Roseanna (Roseanna's Grave) " ...
+ $ genres        : chr [1:7200043] "Action|Adventure|Mystery|Thriller" "Action|Adventure|Thriller" "Action|Adventure|Sci-Fi" "Comedy|Drama|Romance" ...
+ $ rating_date   : POSIXct[1:7200043], format: "1997-07-07 03:04:59" "1997-07-07 03:02:42" ...
+ $ movie_dt      : num [1:7200043] 1996 1996 1983 1997 1997 ...
+ $ date          : POSIXct[1:7200043], format: "1997-07-06" "1997-07-06" ...
+ $ avg_rating    : num [1:7200043] 3.62 3.62 3.62 3.53 3.46 ...
+ $ avg_rating_rel: num [1:7200043] 3.39 3.7 4 3.57 3.32 ...
+ $ n             : int [1:7200043] 18992 16175 22584 154 5196 1188 4740 14550 21361 23367 ...
+ $ years         : num [1:7200043] 22 22 35 21 21 29 16 24 24 28 ...
+ $ n_year        : num [1:7200043] 863 735 645 7 247 41 296 606 890 835 ...
+ $ .folds        : Factor w/ 10 levels "1","2","3","4",..: 1 1 1 1 1 1 1 1 1 1 ...
+ - attr(*, "groups")= tibble [10 x 2] (S3: tbl_df/tbl/data.frame)
+  ..$ .folds: Factor w/ 10 levels "1","2","3","4",..: 1 2 3 4 5 6 7 8 9 10
+  ..$ .rows : list<int> [1:10] 
+  .. ..$ : int [1:720004] 1 2 3 4 5 6 7 8 9 10 ...
+  .. ..$ : int [1:720004] 720005 720006 720007 720008 720009 720010 720011 720012 720013 720014 ...
+  .. ..$ : int [1:720005] 1440009 1440010 1440011 1440012 1440013 1440014 1440015 1440016 1440017 1440018 ...
+  .. ..$ : int [1:720004] 2160014 2160015 2160016 2160017 2160018 2160019 2160020 2160021 2160022 2160023 ...
+  .. ..$ : int [1:720004] 2880018 2880019 2880020 2880021 2880022 2880023 2880024 2880025 2880026 2880027 ...
+  .. ..$ : int [1:720005] 3600022 3600023 3600024 3600025 3600026 3600027 3600028 3600029 3600030 3600031 ...
+  .. ..$ : int [1:720005] 4320027 4320028 4320029 4320030 4320031 4320032 4320033 4320034 4320035 4320036 ...
+  .. ..$ : int [1:720004] 5040032 5040033 5040034 5040035 5040036 5040037 5040038 5040039 5040040 5040041 ...
+  .. ..$ : int [1:720004] 5760036 5760037 5760038 5760039 5760040 5760041 5760042 5760043 5760044 5760045 ...
+  .. ..$ : int [1:720004] 6480040 6480041 6480042 6480043 6480044 6480045 6480046 6480047 6480048 6480049 ...
   .. ..@ ptype: int(0) 
   ..- attr(*, ".drop")= logi TRUE
 ```
@@ -1877,7 +1885,7 @@ Sys.time()
 ```
 
 ```
-[1] "2021-03-21 20:20:35 EDT"
+[1] "2021-07-28 11:46:29 EDT"
 ```
 
 ```r
@@ -1901,12 +1909,26 @@ summary(rmses)
 
 ```
        V1               V2               V3               V4        
- Min.   :0.8643   Min.   :0.8653   Min.   :0.8651   Min.   :0.8633  
- 1st Qu.:0.8643   1st Qu.:0.8653   1st Qu.:0.8651   1st Qu.:0.8633  
- Median :0.8644   Median :0.8653   Median :0.8651   Median :0.8633  
- Mean   :0.8644   Mean   :0.8653   Mean   :0.8651   Mean   :0.8634  
- 3rd Qu.:0.8644   3rd Qu.:0.8653   3rd Qu.:0.8651   3rd Qu.:0.8634  
- Max.   :0.8644   Max.   :0.8654   Max.   :0.8652   Max.   :0.8634  
+ Min.   :0.8631   Min.   :0.8639   Min.   :0.8655   Min.   :0.8633  
+ 1st Qu.:0.8631   1st Qu.:0.8639   1st Qu.:0.8655   1st Qu.:0.8633  
+ Median :0.8631   Median :0.8639   Median :0.8655   Median :0.8633  
+ Mean   :0.8631   Mean   :0.8639   Mean   :0.8655   Mean   :0.8633  
+ 3rd Qu.:0.8631   3rd Qu.:0.8639   3rd Qu.:0.8655   3rd Qu.:0.8634  
+ Max.   :0.8631   Max.   :0.8640   Max.   :0.8655   Max.   :0.8634  
+       V5               V6               V7               V8        
+ Min.   :0.8641   Min.   :0.8642   Min.   :0.8632   Min.   :0.8648  
+ 1st Qu.:0.8641   1st Qu.:0.8642   1st Qu.:0.8632   1st Qu.:0.8648  
+ Median :0.8641   Median :0.8642   Median :0.8632   Median :0.8648  
+ Mean   :0.8641   Mean   :0.8642   Mean   :0.8632   Mean   :0.8648  
+ 3rd Qu.:0.8641   3rd Qu.:0.8642   3rd Qu.:0.8632   3rd Qu.:0.8649  
+ Max.   :0.8641   Max.   :0.8643   Max.   :0.8633   Max.   :0.8649  
+       V9              V10        
+ Min.   :0.8623   Min.   :0.8622  
+ 1st Qu.:0.8623   1st Qu.:0.8622  
+ Median :0.8623   Median :0.8622  
+ Mean   :0.8623   Mean   :0.8622  
+ 3rd Qu.:0.8623   3rd Qu.:0.8622  
+ Max.   :0.8624   Max.   :0.8623  
 ```
 
 ```r
@@ -1915,12 +1937,12 @@ summary(rmses_all)
 
 ```
     lambdas          k                 value       
- Min.   :4.00   Length:244         Min.   :0.8633  
- 1st Qu.:4.75   Class :character   1st Qu.:0.8641  
- Median :5.50   Mode  :character   Median :0.8648  
- Mean   :5.50                      Mean   :0.8645  
- 3rd Qu.:6.25                      3rd Qu.:0.8652  
- Max.   :7.00                      Max.   :0.8654  
+ Min.   :4.00   Length:610         Min.   :0.8622  
+ 1st Qu.:4.75   Class :character   1st Qu.:0.8631  
+ Median :5.50   Mode  :character   Median :0.8636  
+ Mean   :5.50                      Mean   :0.8637  
+ 3rd Qu.:6.25                      3rd Qu.:0.8642  
+ Max.   :7.00                      Max.   :0.8655  
 ```
 
 ```r
@@ -1929,7 +1951,7 @@ lambdas[sapply(1:k, function(x) which.min(rmses[,x]))]
 ```
 
 ```
-[1] 4.75 4.75 4.85 4.75
+ [1] 4.90 4.60 4.60 4.50 4.65 5.00 4.50 4.60 4.55 4.70
 ```
 
 ```r
@@ -1937,7 +1959,7 @@ rmses_all$lambdas[sapply(1:k, function(x) which.min(rmses[,x]))]
 ```
 
 ```
-[1] 4.75 4.75 4.85 4.75
+ [1] 4.90 4.60 4.60 4.50 4.65 5.00 4.50 4.60 4.55 4.70
 ```
 
 ```r
@@ -1946,7 +1968,7 @@ mean(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
 ```
 
 ```
-[1] 4.775
+[1] 4.66
 ```
 
 ```r
@@ -1954,18 +1976,24 @@ mean(rmses_all$lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
 ```
 
 ```
-[1] 4.775
+[1] 4.66
 ```
 
 ```r
-lambda_opt <- mean(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
+(lambda_opt <- mean(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))]))
+```
 
+```
+[1] 4.66
+```
+
+```r
 # Get median lambda from min rmse values for each fold
 median(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
 ```
 
 ```
-[1] 4.75
+[1] 4.6
 ```
 
 ```r
@@ -1973,7 +2001,7 @@ median(rmses_all$lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
 ```
 
 ```
-[1] 4.75
+[1] 4.6
 ```
 
 ```r
@@ -1982,7 +2010,7 @@ range(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
 ```
 
 ```
-[1] 4.75 4.85
+[1] 4.5 5.0
 ```
 
 ```r
@@ -1992,14 +2020,14 @@ Sys.time()
 ```
 
 ```
-[1] "2021-03-21 20:20:35 EDT"
+[1] "2021-07-28 11:46:30 EDT"
 ```
 
 
 \newpage
 ## Model 10 : Model 6 + Regularization from multi-fold CV(Model 9 with multi-fold CV)
 
-We will use the penalty term from our previous section where we got our optimal lambda_opt using multi-fold CV to get minimum RMSE for the edx test_set
+We will use the penalty term from our previous section where we got our optimal lambda_opt 4.66 using 10-fold CV to get minimum RMSE for the edx test_set
 
 
 ```r
@@ -2050,7 +2078,7 @@ rmses_min <- sapply(lambda_opt, function(l){
 ```
 
 ```
-[1] 0.8629105
+[1] 0.8629097
 ```
 
 ```r
@@ -2059,7 +2087,7 @@ save(rmses_min, file = "rdas/rmses_min.rda")
 
 \newpage
 To see how the estimates shrink, let's make a plot of the regularized estimates versus the least squares estimates.
-**_Here we use 4 fold_**
+**_Here we use_** 10 **_fold_**
 
 ![](figures/m10_2-1.pdf)<!-- --> 
 
@@ -2088,7 +2116,7 @@ Index & Method & RMSE\\
 5 & Movie + User + Genres + Rating Time Effects Model & 0.8654205\\
 8 & Regularized Movie + User + Genre Effects Model - 1 fold CV & 0.8649406\\
 6 & Movie + User + Genres + Rating Time + Release date Effects Model & 0.8633330\\
-10 & Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 4 fold CV & 0.8629105\\
+10 & Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 10 fold CV & 0.8629097\\
 9 & Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 1 fold CV & 0.8629094\\
 \bottomrule
 \end{tabular}
@@ -2097,7 +2125,7 @@ Index & Method & RMSE\\
 \newpage
 ## Final Hold-Out test of my final algorithm
 
-I will develop my algorithm using the edx set. For a final test of my final algorithm, I predict movie ratings in the validation set (the final hold-out test set) as if they were unknown. [RMSE](https://en.wikipedia.org/wiki/Root-mean-square_deviation) will be used to evaluate how close my predictions are to the true values in the validation set (the final hold-out test set). My target is RMSE < 0.86490. 
+I have developed my algorithm using the edx set. For a final test of my final algorithm, I predict movie ratings in the validation set (the final hold-out test set) as if they were unknown. [RMSE](https://en.wikipedia.org/wiki/Root-mean-square_deviation) will be used to evaluate how close my predictions are to the true values in the validation set (the final hold-out test set). My target is RMSE < 0.86490. 
 
 
 ```r
@@ -2107,7 +2135,7 @@ load("rdas/validation_md.rda")
 ```
 
 ```
-[1] 4.775
+[1] 4.66
 ```
 
 ```r
@@ -2155,7 +2183,7 @@ rmses_val <- sapply(lambda_opt, function(l){
 ```
 
 ```
-[1] 0.8634943
+[1] 0.8634961
 ```
 
 ```r
@@ -2185,44 +2213,32 @@ Index & Method & RMSE\\
 4 & Movie + User + Genres Effects Model & 0.8655941\\
 5 & Movie + User + Genres + Rating Time Effects Model & 0.8654205\\
 8 & Regularized Movie + User + Genre Effects Model - 1 fold CV & 0.8649406\\
-VAL & Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 4 fold CV - Validation & 0.8634943\\
+VAL & Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 10 fold CV - Validation & 0.8634961\\
 6 & Movie + User + Genres + Rating Time + Release date Effects Model & 0.8633330\\
-10 & Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 4 fold CV & 0.8629105\\
+10 & Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 10 fold CV & 0.8629097\\
 9 & Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 1 fold CV & 0.8629094\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\newpage
-
-<!-- # To be modified -->
-<!-- ```{r, mf_cv_m_1_5_2, echo=TRUE, eval=FALSE} -->
-<!-- # save(rmses, file = "rmses.rda") -->
-<!-- save(rmses, file = "rmses2.rda") -->
-
-<!-- rmse_results <- bind_rows(rmse_results, -->
-<!--                           tibble(Method="60-fold CV Regularized Movie + User + Genre + Time + Releasedate Effect Model entire edx dataset",   -->
-<!--                                  RMSE = min(rmses))) -->
-
-<!-- save(rmse_results, file = "rmse_results2.rda") -->
-
-<!-- rm(train_set,test_set,movie_avgs,user_avgs,genres_avgs,time_effect_avgs,rel_effect_avgs) -->
-<!-- rm(lambda,lambdas, model_5_rmse,mu,rmses,predicted_ratings) -->
-<!-- ``` -->
-<!-- \newpage -->
-<!-- ### Results Table -->
-<!-- ```{r, mf_cv_m_1_5_3, echo=TRUE, eval=TRUE} -->
-<!-- Sys.time() -->
-<!-- rmse_results %>% knitr::kable() -->
-<!-- ``` -->
 <!-- \newpage -->
 
-# Results
+<!-- # Results -->
 
----  
+<!-- ---   -->
 
 \newpage
 # Conclusion
+
+In section 1.1 I set out with a goal to develop my algorithm using the edx set (MovieLens data). For a final test of my final algorithm, I had to predict movie ratings in the validation set (the final hold-out test set) as if they were unknown. RMSE was to be used to evaluate how close my predictions were to the true values in the validation set (the final hold-out test set). My target was RMSE < 0.86490.  
+
+In Section 3.14, using models - "Regularized Movie + User + Genre + Rating Time + Release date Effect Model" I achieved my goal with an RMSE of 0.8634961.  
+
+The lesson here is that having lots of models is useful for the incremental results needed to win competitions, but practically, excellent systems can be built with just a few well-selected models.  
+
+For the future, I will attempt to significantly simplify the process of selecting models and methods/techniques.  
+For a given dataset, my goal will be to find algorithms that achieve close to maximum accuracy while minimizing computation time required for training.  
+
 
 ---  
 
@@ -2247,6 +2263,7 @@ knitr::knit_hooks$set(time_it = local({
   }
 }))
 
+# knit_hooks$get("inline")
 # knitr::opts_chunk$set(fig.pos = "!H", out.extra = "")
 knitr::opts_chunk$set(echo = TRUE,
                       fig.path = "figures/")
@@ -3050,9 +3067,9 @@ Sys.time()
 
 input <- train_set
 
-k <- 4 # temporary, to be deleted  15-30 min
+# k <- 4 # temporary, to be deleted  15-30 min
 # k <- 5 # temporary, to be deleted  1 hr, also default for fold()
-# k <- 10 # temporary, to be deleted 3 hrs
+k <- 10 # temporary, to be deleted 3 hrs
 # k <- 20 # temporary, to be deleted 5.45-6 hrs
 # k <- 60 #                          19hours
 Sys.time()
@@ -3152,7 +3169,7 @@ rmses_all$lambdas[sapply(1:k, function(x) which.min(rmses[,x]))]
 # Get mean lambda from min rmse values for each fold
 mean(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
 mean(rmses_all$lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
-lambda_opt <- mean(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
+(lambda_opt <- mean(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))]))
 
 # Get median lambda from min rmse values for each fold
 median(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
@@ -3275,7 +3292,7 @@ save(model_10_rmse, file = "rdas/model_10_rmse.rda")
 
 rmse_results <- bind_rows(rmse_results, 
                           tibble(Index = "10", 
-                                 Method="Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 4 fold CV", 
+                                 Method=paste0("Regularized Movie + User + Genre + Rating Time + Release date Effect Model - ",k," fold CV"), 
                                  RMSE = model_10_rmse))
 rmse_results <- rmse_results %>% arrange(desc(RMSE))
 save(rmse_results, file = "rdas/rmse_results.rda")
@@ -3335,7 +3352,7 @@ save(model_val_rmse, file = "rdas/model_val_rmse.rda")
 
 rmse_results <- bind_rows(rmse_results, 
                           tibble(Index = "VAL", 
-                                 Method="Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 4 fold CV - Validation", 
+                                 Method=paste0("Regularized Movie + User + Genre + Rating Time + Release date Effect Model - ",k," fold CV - Validation"), 
                                  RMSE = model_val_rmse))
 rmse_results <- rmse_results %>% arrange(desc(RMSE))
 save(rmse_results, file = "rdas/rmse_final_results.rda")

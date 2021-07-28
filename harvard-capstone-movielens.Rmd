@@ -87,6 +87,7 @@ knitr::knit_hooks$set(time_it = local({
   }
 }))
 
+# knit_hooks$get("inline")
 # knitr::opts_chunk$set(fig.pos = "!H", out.extra = "")
 knitr::opts_chunk$set(echo = TRUE,
                       fig.path = "figures/")
@@ -127,7 +128,9 @@ knitr::opts_chunk$set(echo = TRUE,
 
 \bigskip
 
-...this is the abstract text...
+Develop an algorithm using the edx set (MovieLens data). For a final test of my final algorithm, predict movie ratings in the validation set (the final hold-out test set) as if they were unknown. RMSE is to be used to evaluate how close my predictions are to the true values in the validation set (the final hold-out test set). My target is RMSE < 0.86490.  
+
+I achieved my goal with an RMSE of 0.8634961.
 
 <!-- ------------------------------ -->
 
@@ -1794,9 +1797,9 @@ Sys.time()
 
 input <- train_set
 
-k <- 4 # temporary, to be deleted  15-30 min
+# k <- 4 # temporary, to be deleted  15-30 min
 # k <- 5 # temporary, to be deleted  1 hr, also default for fold()
-# k <- 10 # temporary, to be deleted 3 hrs
+k <- 10 # temporary, to be deleted 3 hrs
 # k <- 20 # temporary, to be deleted 5.45-6 hrs
 # k <- 60 #                          19hours
 Sys.time()
@@ -1896,7 +1899,7 @@ rmses_all$lambdas[sapply(1:k, function(x) which.min(rmses[,x]))]
 # Get mean lambda from min rmse values for each fold
 mean(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
 mean(rmses_all$lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
-lambda_opt <- mean(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
+(lambda_opt <- mean(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))]))
 
 # Get median lambda from min rmse values for each fold
 median(lambdas[sapply(1:k, function(x) which.min(rmses[,x]))])
@@ -1914,7 +1917,7 @@ Sys.time()
 \newpage
 ## Model 10 : Model 6 + Regularization from multi-fold CV(Model 9 with multi-fold CV)
 
-We will use the penalty term from our previous section where we got our optimal lambda_opt using multi-fold CV to get minimum RMSE for the edx test_set
+We will use the penalty term from our previous section where we got our optimal lambda_opt `r lambda_opt` using `r k`-fold CV to get minimum RMSE for the edx test_set
 
 ```{r, m10_1, echo=TRUE, eval=TRUE, comment=""}
 # load("rdas/train_set.rda")
@@ -1966,7 +1969,7 @@ save(rmses_min, file = "rdas/rmses_min.rda")
 
 \newpage
 To see how the estimates shrink, let's make a plot of the regularized estimates versus the least squares estimates.
-**_Here we use 4 fold_**
+**_Here we use_** `r k` **_fold_**
 
 ```{r, m10_2, echo=FALSE, eval=TRUE, comment=""}
 mu <- mean(train_set$rating)
@@ -2039,7 +2042,7 @@ save(model_10_rmse, file = "rdas/model_10_rmse.rda")
 
 rmse_results <- bind_rows(rmse_results, 
                           tibble(Index = "10", 
-                                 Method="Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 4 fold CV", 
+                                 Method=paste0("Regularized Movie + User + Genre + Rating Time + Release date Effect Model - ",k," fold CV"), 
                                  RMSE = model_10_rmse))
 rmse_results <- rmse_results %>% arrange(desc(RMSE))
 save(rmse_results, file = "rdas/rmse_results.rda")
@@ -2061,7 +2064,7 @@ Let's add Model 10 results table to get Table \ref{tbl:rmse_results_model_1-10} 
 \newpage
 ## Final Hold-Out test of my final algorithm
 
-I will develop my algorithm using the edx set. For a final test of my final algorithm, I predict movie ratings in the validation set (the final hold-out test set) as if they were unknown. [RMSE](https://en.wikipedia.org/wiki/Root-mean-square_deviation) will be used to evaluate how close my predictions are to the true values in the validation set (the final hold-out test set). My target is RMSE < 0.86490. 
+I have developed my algorithm using the edx set. For a final test of my final algorithm, I predict movie ratings in the validation set (the final hold-out test set) as if they were unknown. [RMSE](https://en.wikipedia.org/wiki/Root-mean-square_deviation) will be used to evaluate how close my predictions are to the true values in the validation set (the final hold-out test set). My target is RMSE < 0.86490. 
 
 ```{r, final_val_1, echo=TRUE, eval=TRUE, comment=""}
 load("rdas/edx_md.rda")
@@ -2118,7 +2121,7 @@ save(model_val_rmse, file = "rdas/model_val_rmse.rda")
 
 rmse_results <- bind_rows(rmse_results, 
                           tibble(Index = "VAL", 
-                                 Method="Regularized Movie + User + Genre + Rating Time + Release date Effect Model - 4 fold CV - Validation", 
+                                 Method=paste0("Regularized Movie + User + Genre + Rating Time + Release date Effect Model - ",k," fold CV - Validation"), 
                                  RMSE = model_val_rmse))
 rmse_results <- rmse_results %>% arrange(desc(RMSE))
 save(rmse_results, file = "rdas/rmse_final_results.rda")
@@ -2137,36 +2140,24 @@ Let's add Model 10 results table to get Table \ref{tbl:rmse_results_model_1-10_v
     kable_styling(latex_options=c("HOLD_position"), font_size=7)
 ```
 
-\newpage
-
-<!-- # To be modified -->
-<!-- ```{r, mf_cv_m_1_5_2, echo=TRUE, eval=FALSE} -->
-<!-- # save(rmses, file = "rmses.rda") -->
-<!-- save(rmses, file = "rmses2.rda") -->
-
-<!-- rmse_results <- bind_rows(rmse_results, -->
-<!--                           tibble(Method="60-fold CV Regularized Movie + User + Genre + Time + Releasedate Effect Model entire edx dataset",   -->
-<!--                                  RMSE = min(rmses))) -->
-
-<!-- save(rmse_results, file = "rmse_results2.rda") -->
-
-<!-- rm(train_set,test_set,movie_avgs,user_avgs,genres_avgs,time_effect_avgs,rel_effect_avgs) -->
-<!-- rm(lambda,lambdas, model_5_rmse,mu,rmses,predicted_ratings) -->
-<!-- ``` -->
-<!-- \newpage -->
-<!-- ### Results Table -->
-<!-- ```{r, mf_cv_m_1_5_3, echo=TRUE, eval=TRUE} -->
-<!-- Sys.time() -->
-<!-- rmse_results %>% knitr::kable() -->
-<!-- ``` -->
 <!-- \newpage -->
 
-# Results
+<!-- # Results -->
 
----  
+<!-- ---   -->
 
 \newpage
 # Conclusion
+
+In section 1.1 I set out with a goal to develop my algorithm using the edx set (MovieLens data). For a final test of my final algorithm, I had to predict movie ratings in the validation set (the final hold-out test set) as if they were unknown. RMSE was to be used to evaluate how close my predictions were to the true values in the validation set (the final hold-out test set). My target was RMSE < 0.86490.  
+
+In Section 3.14, using models - "Regularized Movie + User + Genre + Rating Time + Release date Effect Model" I achieved my goal with an RMSE of 0.8634961.  
+
+The lesson here is that having lots of models is useful for the incremental results needed to win competitions, but practically, excellent systems can be built with just a few well-selected models.  
+
+For the future, I will attempt to significantly simplify the process of selecting models and methods/techniques.  
+For a given dataset, my goal will be to find algorithms that achieve close to maximum accuracy while minimizing computation time required for training.  
+
 
 ---  
 
